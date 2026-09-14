@@ -1,0 +1,2 @@
+-- Intentionally empty. Approved school rules belong here after the brief is settled.
+-- Never add production accounts, passwords, personal records or test attendance.

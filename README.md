@@ -1,75 +1,51 @@
-# React + TypeScript + Vite
+# Clock-in ECIC
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+New teacher attendance app built with React, TypeScript, Vite, Tailwind and Supabase.
+Spanish interface, cédula/password login, school QR attendance, personal history and admin reports.
+Administrators manage teacher accounts and receive in-app notices for missed entry/exit windows.
 
-Currently, two official plugins are available:
+- Monday–Friday in `America/Guayaquil`.
+- Entry QR: **06:00–06:45**. Afterwards, a justification of up to **250 words** records a late arrival.
+- Exit QR: **12:45–13:30**. An unmatched entry after closing produces **Salida no registrada** and an admin dashboard notice.
+- Fresh accounts and database. No old data or application behavior is imported.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Develop
 
-## React Compiler
+Use Node 24 (`.nvmrc`), then:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```sh
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Without Supabase configuration the login screen displays a setup notice. To connect a **new** project,
+copy `.env.example` to `.env.local` and fill in its URL and publishable key. Administrative credentials
+belong in a separate private operator environment, never in Vite variables.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Verify
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```sh
+npm run typecheck
+npm run lint
+npm test
+npm run test:e2e
+npm run build
+npm run check:connection
 ```
+
+`npm test` rebuilds migrations in isolated embedded PostgreSQL and tests permissions/domain rules.
+Browser tests use intercepted fixtures and a dedicated `.env.e2e` build; run the normal production
+build afterwards. Full Supabase pgTAP tests require Docker (`npm run db:start`, `npm run db:test`).
+
+## Setup and operations
+
+- [Confirmed product rules](docs/PRODUCT_BRIEF.md)
+- [Database, permissions and RPC contract](docs/DATABASE.md)
+- [Supabase, accounts, QR and Vercel setup](docs/SETUP.md)
+- [Verification evidence and remaining launch checks](docs/VERIFICATION.md)
+- [Original build plan](docs/BUILD_PLAN.md)
+- [Separate old-service retirement procedure](docs/SUPABASE_VERCEL_RESET.md)
+
+The new Supabase project is linked and initial accounts are provisioned. See the latest verification
+record for completed checks. Vercel deployment, the final HTTPS origin, physical-device camera checks,
+and launch/backup arrangements remain pending.
