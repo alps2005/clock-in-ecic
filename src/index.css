@@ -1,9 +1,9 @@
 @import 'tailwindcss';
 
 :root {
-  font-family: 'Avenir Next', 'Segoe UI', sans-serif;
-  color: #182c2a;
-  background: #f7f8f2;
+  font-family: 'Inter', 'Avenir Next', 'Segoe UI', sans-serif;
+  color: #1e211e;
+  background: #fbfbfa;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -11,8 +11,9 @@
   color-scheme: light;
 }
 * { box-sizing: border-box; }
-body { margin: 0; min-width: 320px; }
+html { background: #fbfbfa; }
+body { margin: 0; min-width: 320px; background: #fbfbfa; color: #1e211e; }
 button, input, select { font: inherit; }
 a { color: inherit; }
-:focus-visible { outline: 3px solid #26746b; outline-offset: 6px; }
-::selection { background: #d8eaa0; color: #182c2a; }
+:focus-visible { outline: 3px solid #1b3627; outline-offset: 3px; }
+::selection { background: #dfead9; color: #1b3627; }
