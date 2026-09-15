@@ -37,9 +37,9 @@ test('notifications include missing and late entry windows and missed exits at e
   const notices = async () => (await db.query<{ result: Notifications }>('select public.admin_notifications() as result')).rows[0].result
   try {
     await login(db, '3')
-    await db.exec("set test.school_time='2026-09-14T11:45:00Z'")
+    await db.exec("set test.school_time='2026-09-14T11:40:00Z'")
     assert.equal((await notices()).total, 0)
-    await db.exec("set test.school_time='2026-09-14T11:45:00.001Z'")
+    await db.exec("set test.school_time='2026-09-14T11:40:00.001Z'")
     assert.equal((await notices()).total, 3)
     assert.ok((await notices()).rows.every(row => row.kind === 'entry' && row.cedula))
     await login(db, '1')

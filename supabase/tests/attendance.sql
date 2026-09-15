@@ -22,9 +22,9 @@ select set_config('request.jwt.claims','{"sub":"10000000-0000-0000-0000-00000000
 set local role authenticated;
 select is((select count(*)::integer from public.attendance_events),0,'other teacher cannot read events');
 reset role;
-select set_config('test.school_time','2026-09-14T11:45:00.001Z',true);
+select set_config('test.school_time','2026-09-14T11:40:00.001Z',true);
 set local role authenticated;
-select throws_ok($$select public.record_attendance('entry','2026-09-14',0,gen_random_uuid(),'ecic:test-only:0000000000000000000000000000000000000000000000000000')$$,'P0001','ENTRY_CLOSED','entry closes just after 06:45');
+select throws_ok($$select public.record_attendance('entry','2026-09-14',0,gen_random_uuid(),'ecic:test-only:0000000000000000000000000000000000000000000000000000')$$,'P0001','ENTRY_CLOSED','entry closes just after 06:40');
 select throws_ok($$select public.record_attendance('late_entry','2026-09-14',0,gen_random_uuid(),null,repeat('word ',251))$$,'P0001','JUSTIFICATION_REQUIRED','more than 250 words rejected');
 select lives_ok($$select public.record_attendance('late_entry','2026-09-14',0,gen_random_uuid(),null,'Motivo de prueba')$$,'late justification records entry');
 reset role;

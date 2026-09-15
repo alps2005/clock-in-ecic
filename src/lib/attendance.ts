@@ -49,7 +49,7 @@ export const errors: Record<string, string> = {
   ENTRY_CLOSED: 'El horario de entrada terminó. Registra una justificación por atraso.',
   EXIT_CLOSED: 'El escaneo de salida no está disponible en este horario.', INVALID_QR: 'Este código QR no corresponde a un punto de registro activo de ECIC.',
   JUSTIFICATION_REQUIRED: 'Escribe una justificación de entre 1 y 250 palabras.',
-  JUSTIFICATION_NOT_OPEN: 'La justificación estará disponible después de las 06:45.',
+  JUSTIFICATION_NOT_OPEN: 'La justificación estará disponible cuando termine el horario de entrada.',
   NOT_WORKING_DAY: 'Hoy no corresponde una jornada de registro para tu cuenta.',
   SCHOOL_NOT_CONFIGURED: 'El acceso estará disponible cuando termine la configuración de la institución.',
   INVALID_FILTER: 'Selecciona un rango válido de hasta 31 días.', REQUEST_REUSED: 'Esta solicitud ya se utilizó con otros datos. Actualiza tu jornada.',

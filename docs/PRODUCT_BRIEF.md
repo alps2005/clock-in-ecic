@@ -22,11 +22,11 @@ accounts, attendance, QR payloads or database objects.
 | School time | Behavior |
 | --- | --- |
 | Before 06:00 | Entry scanner blocked |
-| 06:00:00 through 06:45:00 inclusive | School QR records an on-time entry |
-| After 06:45:00, without an entry | Entry scanner blocked; teacher is flagged late and prompted for a text justification |
+| 06:00:00 through 06:40:00 inclusive | School QR records an on-time entry |
+| After 06:40:00, without an entry | Entry scanner blocked; teacher is flagged late and prompted for a text justification |
 | Late justification | 1–250 whitespace-separated words; submission immediately records a late arrival, without admin approval or a QR scan |
-| Before 12:45 | Exit scanner blocked |
-| 12:45:00 through 13:30:00 inclusive | School QR records the exit; an entry is required |
+| Before 12:40 | Exit scanner blocked |
+| 12:40:00 through 13:30:00 inclusive | School QR records the exit; an entry is required |
 | After 13:30:00, with entry but no exit | Scanner blocked; “Salida no registrada”; notification visible to administrators |
 
 Implementation interpretations recorded explicitly:
@@ -69,7 +69,7 @@ configured holidays. Historical eligibility does not depend on the account's cur
 
 - “A tiempo”: recorded QR entry in the entry window.
 - “Atraso justificado”: recorded late entry and justification.
-- “Atraso · sin justificación”: entry missing after 06:45 and before the exit deadline.
+- “Atraso · sin justificación”: entry missing after 06:40 and before the exit deadline.
 - “Sin entrada”: no entry after 13:30. If a same-day late justification is later submitted,
   the current report changes to a recorded late arrival.
 - “Salida no registrada”: entry exists and no exit after 13:30.

@@ -21,7 +21,7 @@ export async function mockBackend(page: Page, options: { role?: 'teacher' | 'adm
     if (url.pathname === '/auth/v1/user') return json(user)
     if (inactive) return json({ message: 'ACCESS_DENIED', code: 'P0001' }, 400)
     if (url.pathname.endsWith('/app_context')) {
-      const context: AppContext = { profile: { id: profileId, auth_user_id: userId, cedula: '0000000001', full_name: role === 'teacher' ? 'Ana Torres' : 'Administración ECIC', role, active: true }, server_time: serverTime, school_date: '2026-09-14', working_day: true, policy: { id: 'policy', timezone: 'America/Guayaquil', weekdays: [1,2,3,4,5], entry_opens: '06:00:00', entry_closes: '06:45:00', exit_opens: '12:45:00', exit_closes: '13:30:00' }, events }
+      const context: AppContext = { profile: { id: profileId, auth_user_id: userId, cedula: '0000000001', full_name: role === 'teacher' ? 'Ana Torres' : 'Administración ECIC', role, active: true }, server_time: serverTime, school_date: '2026-09-14', working_day: true, policy: { id: 'policy', timezone: 'America/Guayaquil', weekdays: [1,2,3,4,5], entry_opens: '06:00:00', entry_closes: '06:40:00', exit_opens: '12:40:00', exit_closes: '13:30:00' }, events }
       return json(context)
     }
     if (url.pathname.endsWith('/record_attendance')) {

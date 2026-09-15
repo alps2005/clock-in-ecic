@@ -134,3 +134,16 @@ Notifications remain inside the application and refresh every 30 seconds while o
 justifications retain the missed-entry notice. Vercel deployment and final HTTPS origin,
 physical Android/iPhone camera checks, broader hosted attendance workflow tests, and launch/backup
 arrangements remain pending. The requested test teacher should remain separate from operational users.
+
+## Revised attendance windows — 2026-09-15
+
+Applied `202609150001_attendance_windows.sql` to the linked hosted database after confirming
+it matches the frontend project and the active policy has no attendance events. Read back the
+active policy: entry **06:00:00–06:40:00**, exit **12:40:00–13:30:00**, America/Guayaquil.
+The existing policy-history protection remains active. UI schedule labels now read the policy.
+
+Passed: all 19 unit/embedded database/endpoint tests, 12 focused desktop/mobile browser tests
+(scanner recovery, late entry immediately after 06:40, exit availability at 12:40), lint,
+typecheck through the builds, and the final production build. Embedded database tests cover
+both inclusive cutoffs and rejection immediately outside the windows. Local pgTAP was not run:
+the disposable Supabase database is stopped (port 54322 refused connections).
