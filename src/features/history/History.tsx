@@ -1,8 +1,8 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { CalendarDays, ClipboardList, RefreshCw, Search, TrendingUp } from 'lucide-react'
+import { CalendarDays, ClipboardList, RefreshCw, Search, TrendingUp, X } from 'lucide-react'
 import { useSearchParams } from 'react-router'
-import type { AppContext } from '../../types/app'
+import type { AppContext, Report } from '../../types/app'
 import { useRemote } from '../../app/useRemote'
 import { getReport, getTeacherReport } from '../../lib/api'
 import { dateLabel, timeLabel } from '../../lib/attendance'
@@ -119,6 +119,7 @@ export function History({ admin = false, context, teacherId }: { admin?: boolean
 }
 
 function ReportContent({ result, admin, page, setPage }: { result: ReturnType<typeof useRemote<Awaited<ReturnType<typeof getReport>>>>; admin: boolean; page: number; setPage: (page: number) => void }) {
+  const [justificationRow, setJustificationRow] = useState<Awaited<ReturnType<typeof getReport>>['rows'][number] | null>(null)
   if (result.loading) return <Loading />
   if (result.error || !result.data) return <Failure error={result.error} retry={result.refresh} />
   const data = result.data
@@ -160,7 +161,7 @@ function ReportContent({ result, admin, page, setPage }: { result: ReturnType<ty
           </div>
         </div>
 
-        {data.rows.length === 0 ? <div className="empty-state"><ClipboardList size={35} strokeWidth={1.7} aria-hidden="true" /><h3>No hay registros para esta consulta</h3><p>Prueba con otras fechas o un nombre diferente.</p></div> : <div className="table-scroll" role="region" aria-label="Registros de asistencia" tabIndex={0}><table className="ecic-table"><thead><tr><th>DOCENTE</th><th>FECHA</th><th>ENTRADA</th><th>SALIDA</th><th>ESTADO</th><th>TIEMPO</th></tr></thead><tbody>{data.rows.map(row => <tr key={`${row.teacher_id}-${row.school_date}`}><td><div className="ecic-teacher-cell"><span className="ecic-avatar-pill">{row.full_name.split(' ').slice(0, 2).map(part => part[0]).join('').slice(0, 2).toUpperCase()}</span><div><strong>{row.full_name}</strong><small>{row.cedula}</small></div></div></td><td>{dateLabel(row.school_date)}</td><td>{timeLabel(row.entry_at)}</td><td>{timeLabel(row.exit_at)}</td><td><span className={`ecic-status-pill-table ${row.entry_status === 'late_pending' || row.entry_status === 'late' ? 'warning' : row.entry_status === 'on_time' ? 'success' : 'neutral'}`}>{row.entry_status === 'late_pending' ? '• Atraso • sin justificación' : row.entry_status === 'late' ? '• Atraso justificado' : row.entry_status === 'on_time' ? '• A tiempo' : row.entry_status === 'absent' ? '• Sin entrada' : '• Pendiente'}</span></td><td>{row.worked_minutes === null ? '—' : `${Math.floor(row.worked_minutes / 60)}h ${row.worked_minutes % 60}m`}</td></tr>)}</tbody></table></div>}
+        {data.rows.length === 0 ? <div className="empty-state"><ClipboardList size={35} strokeWidth={1.7} aria-hidden="true" /><h3>No hay registros para esta consulta</h3><p>Prueba con otras fechas o un nombre diferente.</p></div> : <div className="table-scroll" role="region" aria-label="Registros de asistencia" tabIndex={0}><table className="ecic-table"><thead><tr><th>DOCENTE</th><th>FECHA</th><th>ENTRADA</th><th>SALIDA</th><th>ESTADO</th><th>TIEMPO</th><th>JUSTIFICACIÓN</th></tr></thead><tbody>{data.rows.map(row => <tr key={`${row.teacher_id}-${row.school_date}`}><td><div className="ecic-teacher-cell"><span className="ecic-avatar-pill">{row.full_name.split(' ').slice(0, 2).map(part => part[0]).join('').slice(0, 2).toUpperCase()}</span><div><strong>{row.full_name}</strong><small>{row.cedula}</small></div></div></td><td>{dateLabel(row.school_date)}</td><td>{timeLabel(row.entry_at)}</td><td>{timeLabel(row.exit_at)}</td><td><span className={`ecic-status-pill-table ${row.entry_status === 'late_pending' || row.entry_status === 'late' ? 'warning' : row.entry_status === 'on_time' ? 'success' : 'neutral'}`}>{row.entry_status === 'late_pending' ? '• Atraso • sin justificación' : row.entry_status === 'late' ? '• Atraso justificado' : row.entry_status === 'on_time' ? '• A tiempo' : row.entry_status === 'absent' ? '• Sin entrada' : '• Pendiente'}</span></td><td>{row.worked_minutes === null ? '—' : `${Math.floor(row.worked_minutes / 60)}h ${row.worked_minutes % 60}m`}</td><td>{row.justification ? <button type="button" className="justification-link" onClick={() => setJustificationRow(row)}>Ver justificación</button> : '—'}</td></tr>)}</tbody></table></div>}
 
         <div className="ecic-table-footer">
           <span>{data.rows.length} registros • Página {page + 1} de {Math.max(1, Math.ceil(data.totals.expected / 25))} | Total activo: {data.rows.length} coincidencia</span>
@@ -174,5 +175,20 @@ function ReportContent({ result, admin, page, setPage }: { result: ReturnType<ty
   }
 
   return <><div className="stats-grid"><div className="stat"><span>A tiempo</span><strong>{data.totals.on_time}</strong><small>Entradas registradas</small></div><div className="stat"><span>Atrasos</span><strong>{data.totals.late}</strong><small>Incluye justificación pendiente</small></div><div className="stat"><span>Sin entrada</span><strong>{data.totals.absent}</strong><small>Al cierre de la jornada</small></div><div className="stat"><span>Sin salida</span><strong>{data.totals.missing_exit}</strong><small>Requieren atención</small></div></div>
-    <section className="report-card"><div className="section-title"><h2>Detalle de asistencia</h2><span className="muted">Actualizado a las {timeLabel(data.as_of)}</span></div>{data.rows.length === 0 ? <div className="empty-state"><ClipboardList size={35} strokeWidth={1.7} aria-hidden="true" /><h3>No hay registros para esta consulta</h3><p>Prueba con otras fechas o un nombre diferente.</p></div> : <div className="table-scroll" role="region" aria-label="Registros de asistencia" tabIndex={0}><table><thead><tr>{admin && <th>Docente</th>}<th>Fecha</th><th>Entrada</th><th>Salida</th><th>Estado</th><th>Tiempo</th><th>Justificación</th></tr></thead><tbody>{data.rows.map(row => <tr key={`${row.teacher_id}-${row.school_date}`}>{admin && <td><strong>{row.full_name}</strong><small>{row.cedula}</small></td>}<td>{dateLabel(row.school_date)}</td><td>{timeLabel(row.entry_at)}</td><td>{timeLabel(row.exit_at)}{row.exit_status === 'missing' && <small className="text-warning">Salida no registrada</small>}</td><td><span className={`badge ${row.entry_status === 'on_time' ? 'green' : row.entry_status === 'pending' ? '' : 'amber'}`}>{entryLabels[row.entry_status]}</span></td><td>{row.worked_minutes === null ? '—' : `${Math.floor(row.worked_minutes / 60)} h ${row.worked_minutes % 60} min`}</td><td className="justification-cell">{row.justification ? <details><summary>Ver justificación</summary><p>{row.justification}</p></details> : '—'}</td></tr>)}</tbody></table></div>}<Pager page={page} total={data.totals.expected} onPage={setPage} /></section></>
+    <section className="report-card"><div className="section-title"><h2>Detalle de asistencia</h2><span className="muted">Actualizado a las {timeLabel(data.as_of)}</span></div>{data.rows.length === 0 ? <div className="empty-state"><ClipboardList size={35} strokeWidth={1.7} aria-hidden="true" /><h3>No hay registros para esta consulta</h3><p>Prueba con otras fechas o un nombre diferente.</p></div> : <div className="table-scroll" role="region" aria-label="Registros de asistencia" tabIndex={0}><table><thead><tr>{admin && <th>Docente</th>}<th>Fecha</th><th>Entrada</th><th>Salida</th><th>Estado</th><th>Tiempo</th><th>Justificación</th></tr></thead><tbody>{data.rows.map(row => <tr key={`${row.teacher_id}-${row.school_date}`}>{admin && <td><strong>{row.full_name}</strong><small>{row.cedula}</small></td>}<td>{dateLabel(row.school_date)}</td><td>{timeLabel(row.entry_at)}</td><td>{timeLabel(row.exit_at)}{row.exit_status === 'missing' && <small className="text-warning">Salida no registrada</small>}</td><td><span className={`badge ${row.entry_status === 'on_time' ? 'green' : row.entry_status === 'pending' ? '' : 'amber'}`}>{entryLabels[row.entry_status]}</span></td><td>{row.worked_minutes === null ? '—' : `${Math.floor(row.worked_minutes / 60)} h ${row.worked_minutes % 60} min`}</td><td>{row.justification ? <button type="button" className="justification-link" onClick={() => setJustificationRow(row)}>Ver justificación</button> : '—'}</td></tr>)}</tbody></table></div>}<Pager page={page} total={data.totals.expected} onPage={setPage} /></section>{justificationRow && <JustificationModal row={justificationRow} close={() => setJustificationRow(null)} />}</>
+}
+
+function JustificationModal({ row, close }: { row: Report['rows'][number]; close: () => void }) {
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') close() }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [close])
+  return <div className="justification-overlay" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) close() }}>
+    <section className="justification-dialog" role="dialog" aria-modal="true" aria-labelledby="justification-title">
+      <div className="section-title"><div><p className="eyebrow">REGISTRO DE ASISTENCIA</p><h2 id="justification-title">Justificación</h2></div><button type="button" className="button secondary" onClick={close} aria-label="Cerrar justificación"><X size={18} aria-hidden="true" /></button></div>
+      <p className="justification-meta">{row.full_name} · {dateLabel(row.school_date)}</p>
+      <p className="justification-message">{row.justification}</p>
+    </section>
+  </div>
 }
