@@ -59,7 +59,7 @@ test('admins see reports and missed-exit notices, filter results and cannot ente
   await signIn(page)
   await expect(page).toHaveURL(/\/admin$/)
   await expect(page.getByRole('cell', { name: /Ana Torres/ })).toBeVisible()
-  await page.getByLabel('Docente', { exact: true }).fill('Nadie')
+  await page.getByLabel(/^Docente$/i).fill('Nadie')
   await page.getByRole('button', { name: 'Consultar' }).click()
   await expect(page.getByRole('heading', { name: 'No hay registros para esta consulta' })).toBeVisible()
   await page.getByRole('link', { name: /Notificaciones/ }).click()

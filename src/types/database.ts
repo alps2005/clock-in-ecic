@@ -131,6 +131,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_deleted_at: string | null
           active: boolean
           auth_user_id: string | null
           cedula: string
@@ -141,6 +142,7 @@ export type Database = {
           session_version: number
         }
         Insert: {
+          account_deleted_at?: string | null
           active?: boolean
           auth_user_id?: string | null
           cedula: string
@@ -151,6 +153,7 @@ export type Database = {
           session_version?: number
         }
         Update: {
+          account_deleted_at?: string | null
           active?: boolean
           auth_user_id?: string | null
           cedula?: string
@@ -208,6 +211,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_teacher: { Args: { p_id: string }; Returns: Json }
+      admin_teacher_report: { Args: { p_id: string; p_from: string; p_to: string; p_page?: number }; Returns: Json }
+      finish_teacher_delete: { Args: { p_key: string; p_token: string; p_id: string; p_version: number }; Returns: undefined }
       activate_profile: {
         Args: {
           p_auth_user_id: string

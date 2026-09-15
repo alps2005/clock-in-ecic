@@ -18,6 +18,7 @@ import { useRemote } from './useRemote'
 import { Failure, Loading } from '../components/Feedback'
 import { Attendance } from '../features/attendance/Attendance'
 import { History } from '../features/history/History'
+import { TeacherPage } from '../features/admin/TeacherPage'
 import { TeachersPage } from '../features/admin/TeachersPage'
 import { NotificationsPage } from '../features/admin/NotificationsPage'
 
@@ -108,7 +109,7 @@ export function Workspace({ userId }: { userId: string }) {
       </header>
 
       <main id="main" className="ecic-workbench" tabIndex={-1}>
-        <Routes>{admin ? <><Route path="/admin" element={<History admin context={data} />} /><Route path="/admin/docentes" element={<TeachersPage schoolDate={data.school_date} />} /><Route path="/admin/avisos" element={<NotificationsPage />} /></> : <><Route path="/jornada" element={<Attendance context={data} refresh={context.refresh} />} /><Route path="/historial" element={<History context={data} />} /></>}<Route path="*" element={<Navigate to={admin ? '/admin' : '/jornada'} replace />} /></Routes>
+        <Routes>{admin ? <><Route path="/admin" element={<History admin context={data} />} /><Route path="/admin/docentes" element={<TeachersPage schoolDate={data.school_date} />} /><Route path="/admin/docentes/:teacherId" element={<TeacherPage context={data} />} /><Route path="/admin/docentes/:teacherId/editar" element={<TeacherPage context={data} editing />} /><Route path="/admin/avisos" element={<NotificationsPage />} /></> : <><Route path="/jornada" element={<Attendance context={data} refresh={context.refresh} />} /><Route path="/historial" element={<History context={data} />} /></>}<Route path="*" element={<Navigate to={admin ? '/admin' : '/jornada'} replace />} /></Routes>
       </main>
 
       <footer className="ecic-footer">

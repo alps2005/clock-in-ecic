@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import type { AppContext, AttendanceEvent, AttendanceRequest, Notifications, Report, TeacherDirectory, TeacherMutation } from '../types/app'
+import type { AppContext, AttendanceEvent, AttendanceRequest, Notifications, Report, TeacherAccount, TeacherDirectory, TeacherMutation } from '../types/app'
 import type { Database } from '../types/database'
 
 type Functions = Database['public']['Functions']
@@ -15,6 +15,9 @@ export const getReport = (from: string, to: string, page: number, search: string
   rpc<'attendance_report', Report>('attendance_report', { p_from: from, p_to: to, p_page: page, p_search: search })
 export const getNotifications = (page: number) => rpc<'admin_notifications', Notifications>('admin_notifications', { p_page: page })
 export const getTeachers = (page: number, search: string) => rpc<'admin_teachers', TeacherDirectory>('admin_teachers', { p_page: page, p_search: search })
+export const getTeacher = (id: string) => rpc<'admin_teacher', TeacherAccount>('admin_teacher', { p_id: id })
+export const getTeacherReport = (id: string, from: string, to: string, page: number) =>
+  rpc<'admin_teacher_report', Report>('admin_teacher_report', { p_id: id, p_from: from, p_to: to, p_page: page })
 export async function manageTeacher(input: TeacherMutation): Promise<void> {
   if (!supabase) throw new Error('SCHOOL_NOT_CONFIGURED')
   const { data, error } = await supabase.functions.invoke('admin-teachers', { body: input })

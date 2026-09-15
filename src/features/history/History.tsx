@@ -4,7 +4,7 @@ import { CalendarDays, ClipboardList, RefreshCw, Search, TrendingUp } from 'luci
 import { useSearchParams } from 'react-router'
 import type { AppContext } from '../../types/app'
 import { useRemote } from '../../app/useRemote'
-import { getReport } from '../../lib/api'
+import { getReport, getTeacherReport } from '../../lib/api'
 import { dateLabel, timeLabel } from '../../lib/attendance'
 import { Failure, Loading, Pager } from '../../components/Feedback'
 
@@ -21,7 +21,7 @@ function shiftDate(base: string, days: number) {
   return toDateInput(date)
 }
 
-export function History({ admin = false, context }: { admin?: boolean; context: AppContext }) {
+export function History({ admin = false, context, teacherId }: { admin?: boolean; context: AppContext; teacherId?: string }) {
   const [params] = useSearchParams()
   const initialSearch = admin ? (params.get('docente') ?? '').slice(0, 120) : ''
   const [from, setFrom] = useState(context.school_date)
@@ -31,7 +31,7 @@ export function History({ admin = false, context }: { admin?: boolean; context: 
   const [page, setPage] = useState(0)
   const [filterError, setFilterError] = useState('')
   const [statusFilter, setStatusFilter] = useState('Todos los estados')
-  const load = useCallback(() => getReport(filter.from, filter.to, page, filter.search), [filter, page])
+  const load = useCallback(() => teacherId ? getTeacherReport(teacherId, filter.from, filter.to, page) : getReport(filter.from, filter.to, page, filter.search), [filter, page, teacherId])
   const result = useRemote(load, 30_000)
 
   function submit(event: FormEvent) {
@@ -51,7 +51,7 @@ export function History({ admin = false, context }: { admin?: boolean; context: 
     setFilter({ from: kind === 'today' ? base : kind === 'yesterday' ? shiftDate(base, -1) : kind === 'week' ? shiftDate(base, -6) : shiftDate(base, -30), to: kind === 'today' ? base : kind === 'yesterday' ? shiftDate(base, -1) : base, search: search.trim() })
   }
 
-  if (admin) {
+  if (admin && !teacherId) {
     return <div className="ecic-main-column">
       <div className="ecic-page-header">
         <div className="ecic-page-header-top">
@@ -107,14 +107,14 @@ export function History({ admin = false, context }: { admin?: boolean; context: 
       </div>
 
       {filterError && <p className="feedback error" role="alert">{filterError}</p>}
-      <ReportContent key={`${filter.from}-${filter.to}-${filter.search}-${page}`} result={result} admin={admin} page={page} setPage={setPage} />
+      <ReportContent key={`${filter.from}-${filter.to}-${filter.search}-${page}`} result={result} admin={admin && !teacherId} page={page} setPage={setPage} />
     </div>
   }
 
-  return <><div className="page-heading"><div><p className="eyebrow">{admin ? 'ADMINISTRACIÓN' : 'MI ESPACIO'}</p><h1>{admin ? 'Asistencia docente' : 'Mi historial'}<span className="accent">.</span></h1><p>{admin ? 'Una mirada clara a cada jornada de nuestra comunidad.' : 'Cada jornada, en un solo lugar.'}</p></div><button className="button secondary" onClick={result.refresh}><RefreshCw size={16} strokeWidth={1.8} aria-hidden="true" />Actualizar</button></div>
-    <form className="filter-bar" onSubmit={submit}><div><label htmlFor="from">Desde</label><input id="from" type="date" required max={context.school_date} value={from} onChange={e => setFrom(e.target.value)} /></div><div><label htmlFor="to">Hasta</label><input id="to" type="date" required max={context.school_date} value={to} onChange={e => setTo(e.target.value)} /></div>{admin && <div className="search-field"><label htmlFor="search">Docente</label><input id="search" placeholder="Nombre o cédula" maxLength={120} value={search} onChange={e => setSearch(e.target.value)} /></div>}<button className="button primary">Consultar</button></form>
+  return <><div className="page-heading"><div><p className="eyebrow">{admin ? 'ADMINISTRACIÓN' : 'MI ESPACIO'}</p>{teacherId ? <h2>Historial de asistencia</h2> : <h1>{admin ? 'Asistencia docente' : 'Mi historial'}<span className="accent">.</span></h1>}<p>{teacherId ? 'Consulta las jornadas de este docente por fecha.' : admin ? 'Una mirada clara a cada jornada de nuestra comunidad.' : 'Cada jornada, en un solo lugar.'}</p></div><button className="button secondary" onClick={result.refresh}><RefreshCw size={16} strokeWidth={1.8} aria-hidden="true" />Actualizar</button></div>
+    <form className={`filter-bar${teacherId ? ' teacher-history-filters' : ''}`} onSubmit={submit}><div><label htmlFor="from">Desde</label><input id="from" type="date" required max={context.school_date} value={from} onChange={e => setFrom(e.target.value)} /></div><div><label htmlFor="to">Hasta</label><input id="to" type="date" required max={context.school_date} value={to} onChange={e => setTo(e.target.value)} /></div>{admin && !teacherId && <div className="search-field"><label htmlFor="search">Docente</label><input id="search" placeholder="Nombre o cédula" maxLength={120} value={search} onChange={e => setSearch(e.target.value)} /></div>}<button className="button primary">Consultar</button></form>
     {filterError && <p className="feedback error" role="alert">{filterError}</p>}
-    <ReportContent key={`${filter.from}-${filter.to}-${filter.search}-${page}`} result={result} admin={admin} page={page} setPage={setPage} />
+    <ReportContent key={`${filter.from}-${filter.to}-${filter.search}-${page}`} result={result} admin={admin && !teacherId} page={page} setPage={setPage} />
   </>
 }
 

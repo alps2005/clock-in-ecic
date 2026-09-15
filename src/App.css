@@ -266,6 +266,21 @@ input, textarea { width: 100%; border: 1px solid var(--border-control); backgrou
 .scanner-dialog { width: min(100%, 520px); max-height: min(720px, 100%); overflow: auto; padding: 22px; border-radius: 18px; background: var(--surface); }
 .scanner-dialog video { display: block; width: 100%; max-height: 56vh; object-fit: cover; border-radius: 12px; background: var(--charcoal-hover); }
 .danger-text { color: #8d362b; }
+.teacher-history-filters { grid-template-columns: repeat(2, minmax(0, 1fr)) auto; }
+.teachers-search { display: flex; align-items: end; }
+.teachers-search > div { flex: 1; }
+.teachers-search input { margin-bottom: 0; }
+.teachers-search .button { flex: 0 0 auto; width: auto; min-width: 0; }
+.teacher-row-actions { display: flex; gap: 8px; }
+.teacher-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 44px; width: 44px; height: 44px; border: 1px solid currentColor; border-radius: 10px; cursor: pointer; }
+.teacher-icon.history-icon { color: #1769c2; background: #eff6ff; }
+.teacher-icon.edit-icon { color: #a66b00; background: #fff8cf; }
+.teacher-icon.lock-icon { color: #c42b35; background: #fff1f2; }
+.teacher-icon:hover:not(:disabled) { filter: brightness(0.94); }
+.teacher-icon:disabled { opacity: 0.45; cursor: not-allowed; }
+.teacher-back { margin-bottom: 22px; }
+.teacher-detail-heading h1 { overflow-wrap: anywhere; }
+.teacher-account-actions { margin-bottom: 20px; }
 
 @media (max-width: 760px) {
   .ecic-main-column { width: 100%; }
@@ -276,6 +291,7 @@ input, textarea { width: 100%; border: 1px solid var(--border-control); backgrou
   .today { text-align: left; }
   .filter-bar { grid-template-columns: 1fr; gap: 10px; padding: 14px; border-radius: 14px; }
   .filter-bar .button { width: 100%; }
+  .teachers-search .button { width: auto; }
   .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .stat { padding: 14px; border-radius: 14px; }
   .stat strong { font-size: 2rem; }

@@ -9,6 +9,17 @@ Administrators manage teacher accounts and receive in-app notices for missed ent
 - Exit QR: **12:40–13:30**. An unmatched entry after closing produces **Salida no registrada** and an admin dashboard notice.
 - Fresh accounts and database. No old data or application behavior is imported.
 
+## Teacher administration
+
+The admin directory uses a blue book for individual history, a yellow pencil for the
+teacher edit page, and a red lock to block sign-in. Blocking preserves employment dates;
+access can be restored in the edit form. Password reset and permanent account deletion
+are available on the edit page. Deletion removes the login account and closes employment,
+while attendance records remain available in the general admin report.
+
+Deploy `202609150002_teacher_details.sql` and the updated `admin-teachers` Edge Function
+before deploying the frontend. The new detail and history RPCs require an active admin session.
+
 ## Develop
 
 Use Node 24 (`.nvmrc`), then:

@@ -27,7 +27,7 @@ export async function handleTeacherAdmin(request: Request, caller: SupabaseClien
     try { input = JSON.parse(text) } catch { return reply({ error: 'INVALID_REQUEST' }, 400) }
     if (!input || typeof input !== 'object' || Array.isArray(input)) return reply({ error: 'INVALID_REQUEST' }, 400)
     const action = input.action
-    if (!['create', 'update', 'reset-password', 'disable'].includes(String(action))) return reply({ error: 'INVALID_REQUEST' }, 400)
+    if (!['create', 'update', 'reset-password', 'disable', 'delete'].includes(String(action))) return reply({ error: 'INVALID_REQUEST' }, 400)
     if (input.role !== undefined) return reply({ error: 'INVALID_REQUEST' }, 400)
     if (action !== 'create' && (typeof input.id !== 'string' || !/^[0-9a-f-]{36}$/i.test(input.id))) return reply({ error: 'INVALID_REQUEST' }, 400)
     if (action === 'create' || action === 'update') {
@@ -36,7 +36,6 @@ export async function handleTeacherAdmin(request: Request, caller: SupabaseClien
       if (action === 'update' && typeof input.active !== 'boolean') return reply({ error: 'INVALID_REQUEST' }, 400)
     }
     if ((action === 'create' || action === 'reset-password') && (typeof input.password !== 'string' || input.password.length < 12 || input.password.length > 256)) return reply({ error: 'PASSWORD_TOO_SHORT' }, 400)
-    if (action === 'disable' && !validDate(input.employed_until)) return reply({ error: 'EMPLOYMENT_REQUIRED' }, 400)
     lockKey = action === 'create' ? `cedula:${input.cedula}` : `profile:${input.id}`
     lockToken = check(await service.rpc('lock_teacher_admin', { p_key: lockKey })) as string
     let profile = check(await service.from('profiles').select('*').eq(action === 'create' ? 'cedula' : 'id', action === 'create' ? input.cedula : input.id).maybeSingle())
@@ -46,12 +45,25 @@ export async function handleTeacherAdmin(request: Request, caller: SupabaseClien
     }
     if (!profile || profile.role !== 'teacher') throw new Error('TEACHER_NOT_FOUND')
     // Also serialize a resumed creation against edits to its now-visible pending profile.
-    if (action !== 'create' && !profile.auth_user_id) throw new Error('ACCOUNT_PENDING')
+    if (action !== 'create' && action !== 'delete' && !profile.auth_user_id) throw new Error('ACCOUNT_PENDING')
+    if (action === 'delete') {
+      // Revoke existing sessions before deleting Auth; retries can finish after Auth is gone.
+      if (profile.auth_user_id) {
+        const user = check(await service.auth.admin.getUserById(profile.auth_user_id)).user
+        if (!user || user.app_metadata.ecic_profile_id !== profile.id) throw new Error('IDENTITY_MISMATCH')
+      }
+      const version = profile.session_version + 1
+      const prepared = check(await service.from('profiles').update({ active: false, session_version: version }).eq('id', profile.id).eq('session_version', profile.session_version).select('id').maybeSingle())
+      if (!prepared) throw new Error('ACCOUNT_CHANGED')
+      if (profile.auth_user_id) check(await service.auth.admin.deleteUser(profile.auth_user_id))
+      check(await service.rpc('finish_teacher_delete', { p_key: lockKey, p_token: lockToken, p_id: profile.id, p_version: version }))
+      return reply({ ok: true, id: profile.id })
+    }
     const teacher = check(await service.from('teachers').select('*').eq('id', profile.id).maybeSingle())
     const from = action === 'create' || action === 'update' ? input.employed_from : teacher?.employed_from
-    const until = action === 'disable' || action === 'update' ? input.employed_until ?? null : teacher?.employed_until ?? null
+    const until = action === 'update' ? input.employed_until ?? null : teacher?.employed_until ?? null
     if (!validDate(from) || (until !== null && (!validDate(until) || until < from))) throw new Error('EMPLOYMENT_REQUIRED')
-    if (action === 'update' || action === 'disable') {
+    if (action === 'update') {
       const first = check(await service.from('attendance_events').select('school_date').eq('teacher_id', profile.id).order('school_date').limit(1))
       const last = check(await service.from('attendance_events').select('school_date').eq('teacher_id', profile.id).order('school_date', { ascending: false }).limit(1))
       if ((first?.[0] && first[0].school_date < from) || (until && last?.[0] && last[0].school_date > until)) throw new Error('EMPLOYMENT_HAS_HISTORY')
