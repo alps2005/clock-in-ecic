@@ -263,7 +263,7 @@ input, textarea { width: 100%; border: 1px solid var(--border-control); backgrou
 .notification-list small { display: block; margin-top: 6px; color: var(--text-muted); line-height: 1.5; }
 .notification-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #fef7ea; color: #945b0a; font-weight: 800; }
 .scanner-overlay { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 20px; background: rgb(90 93 96 / 58%); }
-.scanner-dialog { width: min(100%, 520px); max-height: min(720px, 100%); overflow: auto; padding: 22px; border-radius: 18px; background: var(--surface); }
+.scanner-dialog { position: relative; width: min(100%, 520px); max-height: min(720px, 100%); overflow: auto; padding: 22px; border-radius: 18px; background: var(--surface); }
 .scanner-dialog video { display: block; width: 100%; max-height: 56vh; object-fit: cover; border-radius: 12px; background: var(--charcoal-hover); }
 .justification-link { border: 0; padding: 0; background: transparent; color: #1769c2; font: inherit; font-size: 0.78rem; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .justification-link:hover { color: var(--brand-charcoal); }
