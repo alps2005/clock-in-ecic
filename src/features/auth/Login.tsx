@@ -23,7 +23,7 @@ export function Login() {
   }
   return <div className="welcome">
     <a className="skip-link" href="#main">Ir al contenido</a>
-    <header className="site-header"><a className="brand" href="/" aria-label="Clock-in ECIC, inicio"><span className="brand-mark" aria-hidden="true">e<span>.</span></span><span>ECIC <span className="brand-divider">/</span> <span className="brand-product">Clock-in</span></span></a><span className="header-label">ASISTENCIA DOCENTE</span></header>
+    <header className="site-header"><a className="brand" href="/" aria-label="Clock-in ECIC, inicio"><img className="brand-mark" src="/favicon.svg" alt="" width="43" height="43" /><span>ECIC <span className="brand-divider">/</span> <span className="brand-product">Clock-in</span></span></a><span className="header-label">ASISTENCIA DOCENTE</span></header>
     <main id="main" tabIndex={-1}>
       <section className="intro"><p className="eyebrow"><span /> PRESENTES, CADA DÍA</p><h1>Cada día<br />cuenta<span className="accent">.</span></h1><p className="intro-copy">Tu jornada, tu asistencia.<br />Un espacio para nuestra comunidad docente.</p><div className="preparation-note"><span className="note-icon" aria-hidden="true"><ArrowUpRight size={20} strokeWidth={1.8} /></span><div><h2>Tiempo para enseñar. Espacio para crecer.</h2><p>Registra tu entrada y salida, y consulta tu historial en un solo lugar.</p></div></div></section>
       <section className="login-card" aria-labelledby="login-title"><span className="card-eyebrow">BIENVENIDO A TU ESPACIO</span><h2 id="login-title">Inicia tu jornada.</h2><p>Ingresa con los datos de tu cuenta institucional.</p>

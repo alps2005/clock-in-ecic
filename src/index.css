@@ -1,9 +1,22 @@
 @import 'tailwindcss';
 
 :root {
+  --brand-sky: #78C7D4;
+  --brand-charcoal: #5A5D60;
+  --charcoal-hover: #45484B;
+  --text-muted: #666B70;
+  --surface: #FFFFFF;
+  --surface-page: #F8FBFC;
+  --surface-muted: #F1F5F6;
+  --surface-sky: #EAF6F8;
+  --surface-sky-strong: #D4EDF2;
+  --border: #DDE5E8;
+  --border-control: #A0ADB2;
+  --border-sky: #B5DEE6;
+  accent-color: var(--brand-charcoal);
   font-family: 'Inter', 'Avenir Next', 'Segoe UI', sans-serif;
-  color: #1e211e;
-  background: #fbfbfa;
+  color: var(--brand-charcoal);
+  background: var(--surface-page);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -11,9 +24,11 @@
   color-scheme: light;
 }
 * { box-sizing: border-box; }
-html { background: #fbfbfa; }
-body { margin: 0; min-width: 320px; background: #fbfbfa; color: #1e211e; }
+html { background: var(--surface-page); }
+body { margin: 0; min-width: 320px; background: var(--surface-page); color: var(--brand-charcoal); }
 button, input, select { font: inherit; }
+button { color: inherit; }
+input::placeholder, textarea::placeholder { color: var(--text-muted); opacity: 1; }
 a { color: inherit; }
-:focus-visible { outline: 3px solid #1b3627; outline-offset: 3px; }
-::selection { background: #dfead9; color: #1b3627; }
+:focus-visible { outline: 3px solid var(--brand-charcoal); outline-offset: 3px; }
+::selection { background: var(--surface-sky-strong); color: var(--brand-charcoal); }

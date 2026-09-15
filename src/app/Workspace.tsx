@@ -58,7 +58,7 @@ export function Workspace({ userId }: { userId: string }) {
     <a className="skip-link" href="#main">Ir al contenido</a>
     <aside className="ecic-sidebar">
       <div className="ecic-brand-wrap">
-        <div className="ecic-brand-mark" aria-hidden="true">e<span>.</span></div>
+        <img className="ecic-brand-mark" src="/favicon.svg" alt="" width="42" height="42" />
         <div className="ecic-brand-copy">
           <span className="ecic-brand-title">ECIC</span>
           <span className="ecic-brand-badge">CLOCK-IN</span>
