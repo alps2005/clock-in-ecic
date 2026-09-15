@@ -66,8 +66,10 @@ VITE_SUPABASE_PUBLISHABLE_KEY=NEW_PUBLIC_PUBLISHABLE_KEY
 ```
 
 These are public browser settings. Keep all secret/service-role keys and passwords outside the frontend.
-Only those two names may use `VITE_`; provided values are checked before bundling, and errors do not
-print them. Restart Vite after changing configuration.
+Only those two app settings may use `VITE_`; provided values are checked before bundling, and errors do not
+print them. Vercel-generated `VITE_VERCEL_*` metadata is accepted but excluded from the browser
+environment. Keep the `VITE_` prefix when adding the two Supabase settings in Vercel; hosted builds
+fail with a specific message if either is missing. Restart Vite after changing configuration.
 
 Link and inspect the **new** project explicitly:
 
