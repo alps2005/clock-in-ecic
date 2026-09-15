@@ -171,6 +171,7 @@ function ReportContent({ result, admin, page, setPage }: { result: ReturnType<ty
           </div>
         </div>
       </section>
+      {justificationRow && <JustificationModal row={justificationRow} close={() => setJustificationRow(null)} />}
     </>
   }
 
