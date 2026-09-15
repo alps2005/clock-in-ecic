@@ -75,7 +75,7 @@ export function Scanner({ onScan, onClose }: { onScan: (payload: string) => void
             releaseCamera()
             callback.current(result.data)
           }
-        }, { preferredCamera: 'environment', highlightScanRegion: true, maxScansPerSecond: 5, returnDetailedScanResult: true })
+        }, { preferredCamera: 'environment', maxScansPerSecond: 5, returnDetailedScanResult: true })
         // Reuse the granted stream instead of asking the library to acquire another one.
         element!.srcObject = stream
         await scanner.start()
@@ -107,11 +107,10 @@ export function Scanner({ onScan, onClose }: { onScan: (payload: string) => void
     }
   }}><div className="scanner-dialog">
     <div className="section-title"><h2 id="scanner-title">Escanea el código de ECIC</h2><button ref={closeButton} className="button secondary" onClick={onClose}>Cerrar</button></div>
-    <p>Apunta la cámara al código QR de la institución. Si el navegador lo solicita, toca “Permitir” para usar la cámara.</p>
+    <p>Apunta la cámara al código QR. Se registrará automáticamente al detectarlo.</p>
     {starting && <p role="status">Abriendo la cámara… Acepta el permiso si aparece.</p>}
     {error && <p className="feedback error" role="alert">{error}</p>}
     <video ref={video} muted autoPlay playsInline style={error ? { display: 'none' } : undefined} aria-label="Vista de la cámara" />
     {error && canRetry && <button ref={retryButton} className="button primary" onClick={() => { closeButton.current?.focus(); retry.current() }}>Reintentar cámara</button>}
-    <p className="muted">El registro se realiza al reconocer un código válido.</p>
   </div></div>
 }
