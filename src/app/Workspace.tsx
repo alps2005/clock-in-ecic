@@ -12,7 +12,7 @@ import {
   Settings,
   Users,
 } from 'lucide-react'
-import { getContext, getNotifications } from '../lib/api'
+import { getAdminSidebarCounts, getContext } from '../lib/api'
 import { supabase } from '../lib/supabase'
 import { useRemote } from './useRemote'
 import { Failure, Loading } from '../components/Feedback'
@@ -24,6 +24,7 @@ import { NotificationsPage } from '../features/admin/NotificationsPage'
 
 export function Workspace({ userId }: { userId: string }) {
   const context = useRemote(getContext, 15_000)
+  const sidebarCounts = useRemote(getAdminSidebarCounts, 30_000)
   const [logoutError, setLogoutError] = useState('')
   const [loggingOut, setLoggingOut] = useState(false)
   const [now, setNow] = useState(() => new Date())
@@ -70,11 +71,11 @@ export function Workspace({ userId }: { userId: string }) {
         <p className="ecic-nav-label">ADMINISTRACIÓN</p>
         <nav aria-label="Navegación principal" className="ecic-nav">
           {admin ? <>
-            <NavLink to="/admin" end className="ecic-nav-item active"><span className="ecic-nav-icon"><ClipboardCheck size={18} strokeWidth={1.75} /></span><span>Reporte de asistencia</span><span className="ecic-nav-dot" aria-hidden="true" /></NavLink>
-            <NavLink to="/admin/docentes" className="ecic-nav-item"><span className="ecic-nav-icon"><Users size={18} strokeWidth={1.75} /></span><span>Docentes</span><span className="ecic-nav-badge">29</span></NavLink>
+            <NavLink to="/admin" end className={({ isActive }) => `ecic-nav-item${isActive ? ' active' : ''}`}><span className="ecic-nav-icon"><ClipboardCheck size={18} strokeWidth={1.75} /></span><span>Reporte de asistencia</span><span className="ecic-nav-dot" aria-hidden="true" /></NavLink>
+            <NavLink to="/admin/docentes" className={({ isActive }) => `ecic-nav-item${isActive ? ' active' : ''}`}><span className="ecic-nav-icon"><Users size={18} strokeWidth={1.75} /></span><span>Docentes</span><SidebarCount value={sidebarCounts.data?.teachers} /></NavLink>
             <NavLink to="/admin/horarios" className="ecic-nav-item"><span className="ecic-nav-icon"><Clock3 size={18} strokeWidth={1.75} /></span><span>Horarios y Turnos</span></NavLink>
-            <NavLink to="/admin/justificaciones" className="ecic-nav-item"><span className="ecic-nav-icon"><CheckCircle2 size={18} strokeWidth={1.75} /></span><span>Justificaciones</span><span className="ecic-nav-alert">3</span></NavLink>
-            <NotificationsLink />
+            <NavLink to="/admin/justificaciones" className="ecic-nav-item"><span className="ecic-nav-icon"><CheckCircle2 size={18} strokeWidth={1.75} /></span><span>Justificaciones</span><SidebarCount value={sidebarCounts.data?.justifications} alert /></NavLink>
+            <NavLink to="/admin/avisos" className={({ isActive }) => `ecic-nav-item${isActive ? ' active' : ''}`}><span className="ecic-nav-icon"><Bell size={18} strokeWidth={1.75} /></span><span>Notificaciones</span><SidebarCount value={sidebarCounts.data?.notifications} alert /></NavLink>
             <NavLink to="/admin/configuracion" className="ecic-nav-item"><span className="ecic-nav-icon"><Settings size={18} strokeWidth={1.75} /></span><span>Configuración</span></NavLink>
           </> : <>
             <NavLink to="/jornada" className="ecic-nav-item"><span className="ecic-nav-icon"><FileText size={18} strokeWidth={1.75} /></span><span>Mi jornada</span></NavLink>
@@ -120,12 +121,7 @@ export function Workspace({ userId }: { userId: string }) {
   </div>
 }
 
-const loadNoticeCount = () => getNotifications(0)
-function NotificationsLink() {
-  const result = useRemote(loadNoticeCount, 30_000)
-  return <NavLink to="/admin/avisos" className="ecic-nav-item">
-    <span className="ecic-nav-icon"><Bell size={18} strokeWidth={1.75} /></span>
-    <span>Notificaciones</span>
-    {result.data && result.data.total > 0 && <span className="ecic-nav-badge ecic-nav-badge-warning" aria-label={`${result.data.total} ventanas de registro incumplidas`}>{result.data.total}</span>}
-  </NavLink>
+function SidebarCount({ value, alert = false }: { value?: number; alert?: boolean }) {
+  if (value === undefined) return null
+  return <span className={`ecic-nav-badge${alert ? ' ecic-nav-badge-warning' : ''}`}>{value}</span>
 }

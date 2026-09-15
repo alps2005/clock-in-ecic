@@ -7,5 +7,6 @@ export type Report = { as_of: string; page: number; page_size: number; totals: {
 export type Notifications = { total: number; rows: { teacher_id: string; full_name: string; cedula: string; school_date: string; entry_at: string | null; kind: 'entry' | 'exit' }[] }
 export type TeacherAccount = { id: string; full_name: string; cedula: string; active: boolean; employed_from: string | null; employed_until: string | null }
 export type TeacherDirectory = { total: number; rows: TeacherAccount[] }
+export type AdminSidebarCounts = { teachers: number; justifications: number; notifications: number }
 export type TeacherMutation = { action: 'create' | 'update' | 'reset-password' | 'disable' | 'delete'; id?: string; full_name?: string; cedula?: string; password?: string; active?: boolean; employed_from?: string; employed_until?: string | null }
 export type AttendanceRequest = { p_kind: AttendanceEvent['kind']; p_school_date: string; p_prior_sequence: number; p_request_id: string; p_qr: string | null; p_justification: string | null }

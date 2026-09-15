@@ -213,6 +213,7 @@ export type Database = {
     Functions: {
       admin_teacher: { Args: { p_id: string }; Returns: Json }
       admin_teacher_report: { Args: { p_id: string; p_from: string; p_to: string; p_page?: number }; Returns: Json }
+      admin_sidebar_counts: { Args: Record<PropertyKey, never>; Returns: Json }
       finish_teacher_delete: { Args: { p_key: string; p_token: string; p_id: string; p_version: number }; Returns: undefined }
       activate_profile: {
         Args: {
