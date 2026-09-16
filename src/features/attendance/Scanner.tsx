@@ -17,6 +17,7 @@ function cameraError(error: unknown): string {
 
 export function Scanner({ onScan, onClose }: { onScan: (payload: string) => void; onClose: () => void }) {
   const video = useRef<HTMLVideoElement>(null)
+  const scanRegion = useRef<HTMLDivElement>(null)
   const closeButton = useRef<HTMLButtonElement>(null)
   const retryButton = useRef<HTMLButtonElement>(null)
   const callback = useRef(onScan)
@@ -75,7 +76,10 @@ export function Scanner({ onScan, onClose }: { onScan: (payload: string) => void
             releaseCamera()
             callback.current(result.data)
           }
-        }, { preferredCamera: 'environment', maxScansPerSecond: 5, returnDetailedScanResult: true })
+        }, {
+          preferredCamera: 'environment', maxScansPerSecond: 5, returnDetailedScanResult: true,
+          highlightScanRegion: true, overlay: scanRegion.current!,
+        })
         // Reuse the granted stream instead of asking the library to acquire another one.
         element!.srcObject = stream
         await scanner.start()
@@ -107,10 +111,13 @@ export function Scanner({ onScan, onClose }: { onScan: (payload: string) => void
     }
   }}><div className="scanner-dialog">
     <div className="section-title"><h2 id="scanner-title">Escanea el código de ECIC</h2><button ref={closeButton} className="button secondary" onClick={onClose}>Cerrar</button></div>
-    <p>Apunta la cámara al código QR. Se registrará automáticamente al detectarlo.</p>
+    <p>Coloca todo el código QR dentro del recuadro azul y mantén el teléfono quieto. Se registrará automáticamente, sin tocar la pantalla.</p>
     {starting && <p role="status">Abriendo la cámara… Acepta el permiso si aparece.</p>}
     {error && <p className="feedback error" role="alert">{error}</p>}
-    <video ref={video} muted autoPlay playsInline style={error ? { display: 'none' } : undefined} aria-label="Vista de la cámara" />
+    <div className="scanner-camera" style={error ? { display: 'none' } : undefined}>
+      <video ref={video} muted autoPlay playsInline aria-label="Vista de la cámara" />
+      <div ref={scanRegion} className="scanner-region" style={{ display: 'none' }} aria-hidden="true" />
+    </div>
     {error && canRetry && <button ref={retryButton} className="button primary" onClick={() => { closeButton.current?.focus(); retry.current() }}>Reintentar cámara</button>}
   </div></div>
 }

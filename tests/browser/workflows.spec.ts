@@ -81,13 +81,13 @@ test('missing exit locks the scanner and reports the admin notice', async ({ pag
   await expect(page.getByText('La administración tiene una notificación', { exact: false })).toBeVisible()
 })
 
-test('camera recovers from denied permission, decodes a real QR and releases its tracks', async ({ page }) => {
+test('camera recovers from denied permission, shows scan boundary, decodes a real QR and releases its tracks', async ({ page }, testInfo) => {
   const { default: QRCode } = await import('qrcode')
   const payload = 'ecic:test-only:0000000000000000000000000000000000000000000000000000'
   const qrImage = await QRCode.toDataURL(payload, { width: 300, margin: 4 })
   const backend = await mockBackend(page)
   await page.addInitScript(({ qrImage }) => {
-    navigator.mediaDevices.getUserMedia = async constraints => {
+    Object.defineProperty(MediaDevices.prototype, 'getUserMedia', { configurable: true, value: async (constraints: MediaStreamConstraints) => {
       const attempts = Number(document.documentElement.dataset.cameraAttempts ?? 0) + 1
       document.documentElement.dataset.cameraAttempts = String(attempts)
       document.documentElement.dataset.cameraConstraints = JSON.stringify(constraints)
@@ -98,24 +98,44 @@ test('camera recovers from denied permission, decodes a real QR and releases its
       const image = new Image()
       image.src = qrImage
       await image.decode()
-      const draw = () => { context.fillStyle = 'white'; context.fillRect(0,0,640,640); context.drawImage(image,170,170,300,300) }
+      let showQr = false
+      window.addEventListener('show-test-qr', () => { showQr = true }, { once: true })
+      const draw = () => { context.fillStyle = 'white'; context.fillRect(0,0,640,640); if (showQr) context.drawImage(image,170,170,300,300) }
       draw()
       const stream = canvas.captureStream(10)
       const timer = window.setInterval(draw, 100)
-      for (const track of stream.getTracks()) {
-        const stop = track.stop.bind(track)
-        track.stop = () => { clearInterval(timer); stop(); document.documentElement.dataset.cameraStopped = 'true' }
-      }
+      const stop = MediaStreamTrack.prototype.stop
+      Object.defineProperty(MediaStreamTrack.prototype, 'stop', { configurable: true, value: function (this: MediaStreamTrack) {
+        clearInterval(timer); stop.call(this); document.documentElement.dataset.cameraStopped = 'true'
+      } })
       return stream
-    }
+    } })
   }, { qrImage })
   await signIn(page)
   await page.getByRole('button', { name: 'Escanear entrada' }).click()
   await expect(page.getByRole('alert')).toContainText('El acceso a la cámara está bloqueado')
   expect(await page.evaluate(() => document.documentElement.dataset.cameraAttempts)).toBe('1')
-  await page.keyboard.press('Tab')
-  await expect(page.getByRole('button', { name: 'Reintentar cámara' })).toBeFocused()
-  await page.keyboard.press('Enter')
+  if (testInfo.project.use.isMobile) {
+    await page.getByRole('button', { name: 'Reintentar cámara' }).tap()
+  } else {
+    await page.keyboard.press('Tab')
+    await expect(page.getByRole('button', { name: 'Reintentar cámara' })).toBeFocused()
+    await page.keyboard.press('Enter')
+  }
+  const boundary = page.locator('.scanner-region')
+  await expect(boundary).toBeVisible()
+  await expect.poll(async () => {
+    const frame = (await boundary.boundingBox())!
+    const camera = (await page.getByLabel('Vista de la cámara').boundingBox())!
+    return Math.abs(frame.width / camera.width - 427 / 640)
+  }).toBeLessThan(0.01)
+  const frame = (await boundary.boundingBox())!
+  const camera = (await page.getByLabel('Vista de la cámara').boundingBox())!
+  expect(Math.abs(frame.x + frame.width / 2 - camera.x - camera.width / 2)).toBeLessThan(2)
+  expect(Math.abs(frame.y + frame.height / 2 - camera.y - camera.height / 2)).toBeLessThan(2)
+  expect(backend.requests).toHaveLength(0)
+  await page.screenshot({ path: testInfo.outputPath('scanner-boundary.png') })
+  await page.evaluate(() => window.dispatchEvent(new Event('show-test-qr')))
   await expect(page.getByText('Tu entrada se registró correctamente.')).toBeVisible({ timeout: 15_000 })
   expect(await page.evaluate(() => document.documentElement.dataset.cameraAttempts)).toBe('2')
   expect(await page.evaluate(() => JSON.parse(document.documentElement.dataset.cameraConstraints!))).toEqual({ video: { facingMode: { ideal: 'environment' } }, audio: false })
