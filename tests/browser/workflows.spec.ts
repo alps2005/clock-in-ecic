@@ -15,7 +15,7 @@ test('teacher session restores, guards admin routes and clears private UI at log
   await expect(page.getByRole('heading', { name: 'Mi historial.' })).toBeVisible()
   await expect(page.getByText('Salida no registrada', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Cerrar sesión' }).click()
-  await expect(page.getByRole('heading', { name: 'Inicia tu jornada.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Asistencia Docente ECIC' })).toBeVisible()
   await expect(page.getByText('Ana Torres')).toHaveCount(0)
   expect(await page.evaluate(() => sessionStorage.getItem('ecic-pending-attendance'))).toBeNull()
 })

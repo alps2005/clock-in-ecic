@@ -1,8 +1,30 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight, Clock3 } from 'lucide-react'
 import { config, supabase } from '../../lib/supabase'
 import { loginIdentity, validCedula } from '../../lib/attendance'
+
+const clockFormatter = new Intl.DateTimeFormat('es-EC', {
+  timeZone: 'America/Guayaquil',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+})
+
+function LoginClock() {
+  const [now, setNow] = useState(() => new Date())
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000)
+    return () => window.clearInterval(timer)
+  }, [])
+
+  return <div className="login-clock" title="Hora de Ecuador continental (UTC-5)">
+    <Clock3 size={16} strokeWidth={1.8} aria-hidden="true" />
+    <time dateTime={now.toISOString()} aria-label={`Hora de Ecuador: ${clockFormatter.format(now)}`}>{clockFormatter.format(now)}</time>
+  </div>
+}
 
 export function Login() {
   const [cedula, setCedula] = useState('')
@@ -23,18 +45,24 @@ export function Login() {
   }
   return <div className="welcome">
     <a className="skip-link" href="#main">Ir al contenido</a>
-    <header className="site-header"><a className="brand" href="/" aria-label="Clock-in ECIC, inicio"><img className="brand-mark" src="/favicon.svg" alt="" width="43" height="43" /><span>ECIC <span className="brand-divider">/</span> <span className="brand-product">Clock-in</span></span></a><span className="header-label">ASISTENCIA DOCENTE</span></header>
+    <header className="site-header"><a className="brand" href="/" aria-label="Asistencia Docente ECIC, inicio"><img className="brand-mark" src="/favicon.svg" alt="" width="43" height="43" /><span>Asistencia Docente ECIC</span></a><LoginClock /></header>
     <main id="main" tabIndex={-1}>
-      <section className="intro"><p className="eyebrow"><span /> PRESENTES, CADA DÍA</p><h1>Cada día<br />cuenta<span className="accent">.</span></h1><p className="intro-copy">Tu jornada, tu asistencia.<br />Un espacio para nuestra comunidad docente.</p><div className="preparation-note"><span className="note-icon" aria-hidden="true"><ArrowUpRight size={20} strokeWidth={1.8} /></span><div><h2>Tiempo para enseñar. Espacio para crecer.</h2><p>Registra tu entrada y salida, y consulta tu historial en un solo lugar.</p></div></div></section>
-      <section className="login-card" aria-labelledby="login-title"><span className="card-eyebrow">BIENVENIDO A TU ESPACIO</span><h2 id="login-title">Inicia tu jornada.</h2><p>Ingresa con los datos de tu cuenta institucional.</p>
+      <section className="login-card" aria-labelledby="login-title"><h1 id="login-title">Asistencia Docente ECIC</h1><p>Ingresa con los datos de tu cuenta institucional.</p>
         {!config.ready && <div className="feedback notice" role="status"><h3>Estamos preparando tu espacio</h3><p>El acceso estará disponible cuando termine la configuración de la institución.</p></div>}
         <form onSubmit={submit}>
           <label htmlFor="cedula">Cédula</label><input id="cedula" name="username" autoComplete="username" inputMode="numeric" pattern="[0-9]{10}" maxLength={10} required placeholder="Tu cédula de 10 dígitos" value={cedula} onChange={e => setCedula(e.target.value.replace(/\D/g, ''))} disabled={pending || !config.ready} />
           <label htmlFor="password">Contraseña</label><div className="password-field"><input id="password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} disabled={pending || !config.ready} /><button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>{showPassword ? 'Ocultar' : 'Mostrar'}</button></div>
           {error && <p className="feedback error" role="alert">{error}</p>}
           <button className="button primary login-submit" disabled={pending || !config.ready}>{pending ? 'Ingresando…' : 'Ingresar'}<ArrowUpRight size={17} strokeWidth={1.9} aria-hidden="true" /></button>
-        </form><p className="login-help">¿Olvidaste tu contraseña?<br />Solicita el restablecimiento a la administración.</p>
+        </form><p className="login-help">¿Olvidaste tu contraseña?<br />Solicita el restablecimiento a la <a href="https://wa.me/593967953821" target="_blank" rel="noopener noreferrer" aria-label="Contactar a administración por WhatsApp (se abre en una pestaña nueva)"><strong>administración</strong></a>.</p>
       </section>
-    </main><footer className="site-footer"><span>ECIC · Clock-in</span><span>Hecho para nuestra comunidad.</span></footer>
+    </main>
+    <footer className="site-footer">
+      <span>Escuela Centinela Iberoamericana Cristiana</span>
+      <span className="footer-copyright">© 2026. Todos los derechos reservados.</span>
+      <a className="footer-github" href="https://github.com/alps2005" target="_blank" rel="noopener noreferrer" aria-label="Perfil de GitHub de alps2005 (se abre en una pestaña nueva)">
+        <svg width="24" height="24" aria-hidden="true"><use href="/icons.svg#github-icon" /></svg>
+      </a>
+    </footer>
   </div>
 }
