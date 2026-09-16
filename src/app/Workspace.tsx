@@ -21,6 +21,8 @@ import { History } from '../features/history/History'
 import { TeacherPage } from '../features/admin/TeacherPage'
 import { TeachersPage } from '../features/admin/TeachersPage'
 import { NotificationsPage } from '../features/admin/NotificationsPage'
+import { ExportModal } from '../features/history/ExportModal'
+import { schoolTimezone } from '../lib/attendance'
 
 export function Workspace({ userId }: { userId: string }) {
   const context = useRemote(getContext, 15_000)
@@ -28,6 +30,7 @@ export function Workspace({ userId }: { userId: string }) {
   const [logoutError, setLogoutError] = useState('')
   const [loggingOut, setLoggingOut] = useState(false)
   const [now, setNow] = useState(() => new Date())
+  const [exportOpen, setExportOpen] = useState(false)
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 30_000)
@@ -47,6 +50,7 @@ export function Workspace({ userId }: { userId: string }) {
   const data = context.data
   const admin = data.profile.role === 'admin'
   const formattedClock = new Intl.DateTimeFormat('es-EC', {
+    timeZone: schoolTimezone,
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -100,14 +104,13 @@ export function Workspace({ userId }: { userId: string }) {
 
     <div className="ecic-main-panel">
       <header className="ecic-topbar">
-        <div className="ecic-breadcrumb">ADMINISTRACIÓN / Asistencia docente</div>
+        <div className="ecic-status-pill ecic-live-clock"><Clock3 size={16} strokeWidth={1.9} aria-hidden="true" /><time dateTime={now.toISOString()}>{formattedClock}</time></div>
         <div className="ecic-topbar-actions">
-          <span className="ecic-status-pill"><span className="ecic-live-dot" aria-hidden="true" />ECIC • Ecuador continental (UTC-5)</span>
-          <div className="ecic-live-clock"><Clock3 size={15} strokeWidth={1.75} />{formattedClock}</div>
-          <button className="ecic-ghost-button" type="button"><Download size={15} strokeWidth={1.8} />Exportar</button>
-          <button className="ecic-ghost-button" type="button"><RefreshCw size={15} strokeWidth={1.8} />Actualizar</button>
+          <button className="ecic-ghost-button" type="button" onClick={() => setExportOpen(true)}><Download size={15} strokeWidth={1.8} />Exportar</button>
+          <button className="ecic-ghost-button" type="button" onClick={() => window.location.reload()}><RefreshCw size={15} strokeWidth={1.8} />Actualizar</button>
         </div>
       </header>
+      {exportOpen && <ExportModal admin={admin} close={() => setExportOpen(false)} />}
 
       <main id="main" className="ecic-workbench" tabIndex={-1}>
         <Routes>{admin ? <><Route path="/admin" element={<History admin context={data} />} /><Route path="/admin/docentes" element={<TeachersPage schoolDate={data.school_date} />} /><Route path="/admin/docentes/:teacherId" element={<TeacherPage context={data} />} /><Route path="/admin/docentes/:teacherId/editar" element={<TeacherPage context={data} editing />} /><Route path="/admin/avisos" element={<NotificationsPage />} /></> : <><Route path="/jornada" element={<Attendance context={data} refresh={context.refresh} />} /><Route path="/historial" element={<History context={data} />} /></>}<Route path="*" element={<Navigate to={admin ? '/admin' : '/jornada'} replace />} /></Routes>

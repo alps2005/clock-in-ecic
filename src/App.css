@@ -96,11 +96,31 @@ input, textarea { width: 100%; border: 1px solid var(--border-control); backgrou
 .ecic-logout { margin-top: 12px; background: transparent; border: 0; color: var(--text-muted); display: inline-flex; align-items: center; gap: 8px; padding: 0 4px; font-size: 0.72rem; font-weight: 600; cursor: pointer; }
 .ecic-main-panel { min-width: 0; padding: 0 28px; display: flex; flex-direction: column; min-height: 100vh; }
 .ecic-topbar { position: sticky; top: 0; z-index: 10; min-height: 82px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--border); background: rgb(248 251 252 / 96%); backdrop-filter: blur(10px); }
-.ecic-breadcrumb { color: var(--text-muted); font-size: 0.68rem; letter-spacing: 0.12em; font-weight: 700; }
-.ecic-topbar-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.ecic-topbar-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; justify-content: flex-end; margin-left: auto; }
 .ecic-status-pill { display: inline-flex; align-items: center; gap: 8px; background: var(--surface-sky); color: var(--brand-charcoal); border: 1px solid var(--border); border-radius: 999px; padding: 8px 12px; font-size: 0.7rem; font-weight: 600; }
 .ecic-live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand-sky); box-shadow: 0 0 0 5px rgb(120 199 212 / 20%); }
-.ecic-live-clock { display: inline-flex; align-items: center; gap: 8px; color: var(--brand-charcoal); font-size: 0.76rem; font-weight: 600; }
+.ecic-live-clock { font-variant-numeric: tabular-nums; }
+.ecic-live-clock svg { color: var(--brand-sky); flex-shrink: 0; }
+.export-dialog { width: min(1180px, calc(100% - 32px)); max-height: calc(100dvh - 40px); margin: auto; padding: 26px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); color: var(--brand-charcoal); box-shadow: 0 24px 80px rgb(54 63 67 / 24%); overflow: auto; }
+.export-dialog::backdrop { background: rgb(28 42 48 / 45%); backdrop-filter: blur(4px); }
+.export-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.export-heading .eyebrow { margin: 0 0 10px; font-size: 10px; }
+.export-heading h2 { margin: 0; font-size: clamp(22px, 3vw, 28px); letter-spacing: -0.04em; }
+.export-heading button { min-width: 42px; min-height: 42px; }
+.export-description, .export-note { color: var(--text-muted); font-size: 13px; line-height: 1.6; }
+.export-summary { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 24px; font-size: 12px; }
+.export-note { font-size: 12px; }
+.export-table-scroll { max-height: 48dvh; border: 1px solid var(--border); border-radius: 12px; }
+.export-table { width: 100%; }
+.export-table th { position: sticky; top: 0; z-index: 1; background: var(--surface-muted); }
+.export-table td:last-child { min-width: 240px; max-width: 380px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.export-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); }
+.export-actions > span { margin-right: auto; font-size: 12px; color: var(--text-muted); }
+@media (max-width: 600px) {
+  .export-dialog { padding: 18px; }
+  .export-actions > span { width: 100%; }
+  .export-actions .button { flex: 1; padding: 12px 10px; font-size: 12px; white-space: nowrap; }
+}
 .ecic-ghost-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--brand-charcoal); border-radius: 10px; padding: 9px 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02); }
 .ecic-ghost-button.smaller { padding: 8px 12px; }
 .ecic-ghost-button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -185,12 +205,8 @@ input, textarea { width: 100%; border: 1px solid var(--border-control); backgrou
   .ecic-user-meta strong { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ecic-logout { position: absolute; right: 16px; bottom: 14px; margin: 0; }
   .ecic-main-panel { padding: 0 16px; }
-  .ecic-topbar { min-height: 0; padding: 14px 0 12px; display: block; }
-  .ecic-breadcrumb { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ecic-topbar-actions { justify-content: flex-start; gap: 8px; margin-top: 10px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
-  .ecic-topbar-actions::-webkit-scrollbar { display: none; }
-  .ecic-status-pill, .ecic-live-clock, .ecic-ghost-button { flex: 0 0 auto; }
-  .ecic-live-clock { display: none; }
+  .ecic-topbar { min-height: 0; padding: 14px 0 12px; flex-wrap: wrap; gap: 12px; }
+  .ecic-topbar-actions { gap: 8px; }
   .ecic-ghost-button { min-height: 40px; }
   .ecic-workbench { padding-top: 18px; }
   .ecic-filter-bar { grid-template-columns: 1fr; }
