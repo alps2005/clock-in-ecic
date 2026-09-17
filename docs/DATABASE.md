@@ -73,7 +73,35 @@ search arguments. Admin search matches literal substrings of name or cédula. Th
 teacher-ID override. Invalid inputs raise `INVALID_FILTER`.
 
 Each request captures one report timestamp, applies eligibility and filters, then computes all totals
-before paging. Totals: `expected`, `on_time`, `late`, `absent`, `missing_exit`, `completed`.
+before paging. Totals: `expected`, `on_time`, `late`, `entry_on_time`, `entry_late`,
+`exit_on_time`, `exit_late`, `missing_entry`, `absent`, `missing_exit`, `completed`.
+
+The Entradas and Salidas card rows use their own `entry_on_time` / `entry_late` and
+`exit_on_time` / `exit_late` counters. FALTAS is a separate daily absence total. Apply
+`202609170002_separate_entry_exit_statistics.sql` before deploying these separate rows.
+
+Combined `on_time` and `late` counters remain available for compatibility; each equals the
+sum of its entry and exit counters. Timeliness uses the window for the corresponding mark:
+
+- `on_time`: each mark recorded inside its respective entry or exit window, including both endpoints.
+- `late`: each mark recorded after its respective window closes; unmarked `late_pending` days do not count.
+
+An on-time entry plus an on-time exit contributes two to `on_time`. A late entry plus an
+on-time exit contributes one to each total. Late exit records, if present, count toward `late`;
+the marking flow still rejects exits outside the exit window. These counts use recorded
+timestamps and the policy for that date and can exceed the number of daily history rows.
+
+The remaining statistics count teacher-days:
+- `missing_entry`: an exit exists without an entry (`Sin entrada`).
+- `missing_exit`: an entry exists without an exit after the exit window closes.
+- `absent`: neither mark exists after the exit window closes (`FALTAS` / `Sin asistencia`).
+
+At the exact exit cutoff, unmarked days remain pending. Weekends, holidays, future dates and
+days outside employment remain excluded. Timeliness and missing-mark counts can overlap.
+The current marking RPC still requires an entry before an exit; reports can distinguish
+exit-only records if supplied through trusted maintenance. Apply
+`202609170001_attendance_statistics.sql` before deploying the updated frontend.
+
 Rows include teacher/name/cédula/date, entry/exit timestamps, statuses, justification and worked minutes.
 The timestamp makes each request internally consistent; pages requested at different times can reflect
 new attendance. Export and a multi-request snapshot mechanism are outside this release.

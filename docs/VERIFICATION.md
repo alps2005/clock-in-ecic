@@ -147,3 +147,36 @@ Passed: all 19 unit/embedded database/endpoint tests, 12 focused desktop/mobile 
 typecheck through the builds, and the final production build. Embedded database tests cover
 both inclusive cutoffs and rejection immediately outside the windows. Local pgTAP was not run:
 the disposable Supabase database is stopped (port 54322 refused connections).
+
+## Attendance statistics deployment — 2026-09-17
+
+Confirmed the frontend and linked Supabase project match. Migration inspection and the push
+dry run identified only `202609170001_attendance_statistics.sql` as pending. Applied that
+migration and verified all local/remote migration versions now match. The migration replaces
+report and notification functions; it does not alter attendance records or the marking flow.
+
+A read-only transaction verified the affected teacher's September 14 report through the public
+authenticated RPC: both marks are absent, `absent = 1`, `missing_entry = 0`, `missing_exit = 0`,
+and both timeliness counters are zero. The transaction rolled back its temporary auth settings.
+The previous live RPC omitted `missing_entry`, causing its counter to render blank. The updated
+RPC returns every counter. Under the agreed definitions, neither mark means FALTAS; Sin entrada
+requires an exit, and Sin salida requires an entry.
+
+Before deployment: 32 unit/database/endpoint tests and lint passed. The frontend statistics
+were also covered by the preceding 50 passing desktop/mobile browser checks and production build.
+
+## Separate entry and exit statistics — 2026-09-17
+
+Added Entradas and Salidas groups to teacher and admin statistics, each with independent
+on-time, late and missing-mark counters. FALTAS remains a separate daily total. Aggregate
+counts still cover the full filtered dataset before pagination.
+
+Applied `202609170002_separate_entry_exit_statistics.sql` after a dry run confirmed it was
+the only pending migration. A read-only authenticated report for the affected teacher over
+September 14–17 confirmed `entry_on_time = 0`, `entry_late = 3`, `exit_on_time = 2` and
+`exit_late = 0`. The previously displayed combined on-time count came from two exits.
+No attendance records or marking rules were changed.
+
+Passed: 32 unit/database/endpoint tests, 50 desktop/mobile browser checks, lint and the
+production build. Reviewed desktop and mobile screenshots of the separate rows, including
+visible zero counters and the report-above-statistics ordering.

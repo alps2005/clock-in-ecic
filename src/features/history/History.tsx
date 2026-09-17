@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { CalendarDays, ClipboardList, RefreshCw, Search, TrendingUp, X } from 'lucide-react'
+import { CalendarDays, ClipboardList, RefreshCw, Search, X } from 'lucide-react'
 import { useSearchParams } from 'react-router'
 import type { AppContext, Report } from '../../types/app'
 import { useRemote } from '../../app/useRemote'
 import { getReport, getTeacherReport } from '../../lib/api'
 import { dateLabel, timeLabel } from '../../lib/attendance'
 import { Failure, Loading, Pager } from '../../components/Feedback'
+import { AttendanceStats } from './AttendanceStats'
 
-const entryLabels = { on_time: 'A tiempo', late: 'Atraso justificado', late_pending: 'Atraso • sin justificación', absent: 'Sin entrada', pending: 'Pendiente' }
+const entryLabels = { on_time: 'A tiempo', late: 'Atraso justificado', late_pending: 'Atraso • sin justificación', missing_entry: 'Sin entrada', absent: 'Sin asistencia', pending: 'Pendiente' }
 
 function toDateInput(date: Date) {
   const offset = new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
@@ -111,11 +112,23 @@ export function History({ admin = false, context, teacherId }: { admin?: boolean
     </div>
   }
 
-  return <><div className="page-heading"><div><p className="eyebrow">{admin ? 'ADMINISTRACIÓN' : 'MI ESPACIO'}</p>{teacherId ? <h2>Historial de asistencia</h2> : <h1>{admin ? 'Asistencia docente' : 'Mi historial'}<span className="accent">.</span></h1>}<p>{teacherId ? 'Consulta las jornadas de este docente por fecha.' : admin ? 'Una mirada clara a cada jornada de nuestra comunidad.' : 'Cada jornada, en un solo lugar.'}</p></div><button className="button secondary" onClick={result.refresh}><RefreshCw size={16} strokeWidth={1.8} aria-hidden="true" />Actualizar</button></div>
+  const personalHistory = !admin && !teacherId
+  return <div className={`history-page${personalHistory ? ' personal-history' : ''}`}>
+    <div className="page-heading">
+      <div>
+        {!personalHistory && <p className="eyebrow">{admin ? 'ADMINISTRACIÓN' : 'MI ESPACIO'}</p>}
+        {teacherId ? <h2>Historial de asistencia</h2> : <h1>{admin ? <>Asistencia docente<span className="accent">.</span></> : 'Mi historial'}</h1>}
+        <p>{teacherId ? 'Consulta las jornadas de este docente por fecha.' : admin ? 'Una mirada clara a cada jornada de nuestra comunidad.' : 'Tus jornadas, en un solo lugar.'}</p>
+      </div>
+      <button className="button secondary" onClick={result.refresh}>
+        <RefreshCw size={16} strokeWidth={1.8} aria-hidden="true" />
+        {personalHistory ? 'Actualizar Historial' : 'Actualizar'}
+      </button>
+    </div>
     <form className={`filter-bar${teacherId ? ' teacher-history-filters' : ''}`} onSubmit={submit}><div><label htmlFor="from">Desde</label><input id="from" type="date" required max={context.school_date} value={from} onChange={e => setFrom(e.target.value)} /></div><div><label htmlFor="to">Hasta</label><input id="to" type="date" required max={context.school_date} value={to} onChange={e => setTo(e.target.value)} /></div>{admin && !teacherId && <div className="search-field"><label htmlFor="search">Docente</label><input id="search" placeholder="Nombre o cédula" maxLength={120} value={search} onChange={e => setSearch(e.target.value)} /></div>}<button className="button primary">Consultar</button></form>
     {filterError && <p className="feedback error" role="alert">{filterError}</p>}
     <ReportContent key={`${filter.from}-${filter.to}-${filter.search}-${page}`} result={result} admin={admin && !teacherId} page={page} setPage={setPage} />
-  </>
+  </div>
 }
 
 function ReportContent({ result, admin, page, setPage }: { result: ReturnType<typeof useRemote<Awaited<ReturnType<typeof getReport>>>>; admin: boolean; page: number; setPage: (page: number) => void }) {
@@ -126,24 +139,7 @@ function ReportContent({ result, admin, page, setPage }: { result: ReturnType<ty
 
   if (admin) {
     return <>
-      <div className="ecic-metrics-grid">
-        <div className="ecic-stat-card">
-          <div className="ecic-stat-head">
-            <span>A TIEMPO</span>
-            <span className="ecic-trend-badge"><TrendingUp size={14} strokeWidth={1.8} aria-hidden="true" />96.5%</span>
-          </div>
-          <div className="ecic-stat-value"><strong>{data.totals.on_time}</strong><span>/ {data.totals.expected} docentes</span></div>
-          <p>Entradas registradas</p>
-        </div>
-        <div className="ecic-stat-card ecic-stat-card-warning">
-          <div className="ecic-stat-head">
-            <span>ATRASOS</span>
-            <span className="ecic-warning-badge">Atención requerida</span>
-          </div>
-          <div className="ecic-stat-value warning"><strong>{data.totals.late}</strong><span>registro pendiente</span></div>
-          <p>Incluye justificación pendiente</p>
-        </div>
-      </div>
+      <AttendanceStats totals={data.totals} admin />
 
       <section className="ecic-table-card">
         <div className="ecic-table-header">
@@ -161,7 +157,7 @@ function ReportContent({ result, admin, page, setPage }: { result: ReturnType<ty
           </div>
         </div>
 
-        {data.rows.length === 0 ? <div className="empty-state"><ClipboardList size={35} strokeWidth={1.7} aria-hidden="true" /><h3>No hay registros para esta consulta</h3><p>Prueba con otras fechas o un nombre diferente.</p></div> : <div className="table-scroll" role="region" aria-label="Registros de asistencia" tabIndex={0}><table className="ecic-table"><thead><tr><th>DOCENTE</th><th>FECHA</th><th>ENTRADA</th><th>SALIDA</th><th>ESTADO</th><th>TIEMPO</th><th>JUSTIFICACIÓN</th></tr></thead><tbody>{data.rows.map(row => <tr key={`${row.teacher_id}-${row.school_date}`}><td><div className="ecic-teacher-cell"><span className="ecic-avatar-pill">{row.full_name.split(' ').slice(0, 2).map(part => part[0]).join('').slice(0, 2).toUpperCase()}</span><div><strong>{row.full_name}</strong><small>{row.cedula}</small></div></div></td><td>{dateLabel(row.school_date)}</td><td>{timeLabel(row.entry_at)}</td><td>{timeLabel(row.exit_at)}</td><td><span className={`ecic-status-pill-table ${row.entry_status === 'late_pending' || row.entry_status === 'late' ? 'warning' : row.entry_status === 'on_time' ? 'success' : 'neutral'}`}>{row.entry_status === 'late_pending' ? '• Atraso • sin justificación' : row.entry_status === 'late' ? '• Atraso justificado' : row.entry_status === 'on_time' ? '• A tiempo' : row.entry_status === 'absent' ? '• Sin entrada' : '• Pendiente'}</span></td><td>{row.worked_minutes === null ? '—' : `${Math.floor(row.worked_minutes / 60)}h ${row.worked_minutes % 60}m`}</td><td>{row.justification ? <button type="button" className="justification-link" onClick={() => setJustificationRow(row)}>Ver justificación</button> : '—'}</td></tr>)}</tbody></table></div>}
+        {data.rows.length === 0 ? <div className="empty-state"><ClipboardList size={35} strokeWidth={1.7} aria-hidden="true" /><h3>No hay registros para esta consulta</h3><p>Prueba con otras fechas o un nombre diferente.</p></div> : <div className="table-scroll" role="region" aria-label="Registros de asistencia" tabIndex={0}><table className="ecic-table"><thead><tr><th>DOCENTE</th><th>FECHA</th><th>ENTRADA</th><th>SALIDA</th><th>ESTADO</th><th>TIEMPO</th><th>JUSTIFICACIÓN</th></tr></thead><tbody>{data.rows.map(row => <tr key={`${row.teacher_id}-${row.school_date}`}><td><div className="ecic-teacher-cell"><span className="ecic-avatar-pill">{row.full_name.split(' ').slice(0, 2).map(part => part[0]).join('').slice(0, 2).toUpperCase()}</span><div><strong>{row.full_name}</strong><small>{row.cedula}</small></div></div></td><td>{dateLabel(row.school_date)}</td><td>{timeLabel(row.entry_at)}</td><td>{timeLabel(row.exit_at)}</td><td><span className={`ecic-status-pill-table ${row.entry_status === 'late_pending' || row.entry_status === 'late' ? 'warning' : row.entry_status === 'on_time' ? 'success' : 'neutral'}`}>{`• ${entryLabels[row.entry_status]}`}</span></td><td>{row.worked_minutes === null ? '—' : `${Math.floor(row.worked_minutes / 60)}h ${row.worked_minutes % 60}m`}</td><td>{row.justification ? <button type="button" className="justification-link" onClick={() => setJustificationRow(row)}>Ver justificación</button> : '—'}</td></tr>)}</tbody></table></div>}
 
         <div className="ecic-table-footer">
           <span>{data.rows.length} registros • Página {page + 1} de {Math.max(1, Math.ceil(data.totals.expected / 25))} | Total activo: {data.rows.length} coincidencia</span>
@@ -175,7 +171,7 @@ function ReportContent({ result, admin, page, setPage }: { result: ReturnType<ty
     </>
   }
 
-  return <><div className="stats-grid"><div className="stat"><span>A tiempo</span><strong>{data.totals.on_time}</strong><small>Entradas registradas</small></div><div className="stat"><span>Atrasos</span><strong>{data.totals.late}</strong><small>Incluye justificación pendiente</small></div><div className="stat"><span>Sin entrada</span><strong>{data.totals.absent}</strong><small>Al cierre de la jornada</small></div><div className="stat"><span>Sin salida</span><strong>{data.totals.missing_exit}</strong><small>Requieren atención</small></div></div>
+  return <><AttendanceStats totals={data.totals} />
     <section className="report-card"><div className="section-title"><h2>Detalle de asistencia</h2><span className="muted">Actualizado a las {timeLabel(data.as_of)}</span></div>{data.rows.length === 0 ? <div className="empty-state"><ClipboardList size={35} strokeWidth={1.7} aria-hidden="true" /><h3>No hay registros para esta consulta</h3><p>Prueba con otras fechas o un nombre diferente.</p></div> : <div className="table-scroll" role="region" aria-label="Registros de asistencia" tabIndex={0}><table><thead><tr>{admin && <th>Docente</th>}<th>Fecha</th><th>Entrada</th><th>Salida</th><th>Estado</th><th>Tiempo</th><th>Justificación</th></tr></thead><tbody>{data.rows.map(row => <tr key={`${row.teacher_id}-${row.school_date}`}>{admin && <td><strong>{row.full_name}</strong><small>{row.cedula}</small></td>}<td>{dateLabel(row.school_date)}</td><td>{timeLabel(row.entry_at)}</td><td>{timeLabel(row.exit_at)}{row.exit_status === 'missing' && <small className="text-warning">Salida no registrada</small>}</td><td><span className={`badge ${row.entry_status === 'on_time' ? 'green' : row.entry_status === 'pending' ? '' : 'amber'}`}>{entryLabels[row.entry_status]}</span></td><td>{row.worked_minutes === null ? '—' : `${Math.floor(row.worked_minutes / 60)} h ${row.worked_minutes % 60} min`}</td><td>{row.justification ? <button type="button" className="justification-link" onClick={() => setJustificationRow(row)}>Ver justificación</button> : '—'}</td></tr>)}</tbody></table></div>}<Pager page={page} total={data.totals.expected} onPage={setPage} /></section>{justificationRow && <JustificationModal row={justificationRow} close={() => setJustificationRow(null)} />}</>
 }
 

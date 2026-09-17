@@ -1,8 +1,9 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Bell,
   CheckCircle2,
+  ChevronDown,
   ClipboardCheck,
   Clock3,
   Download,
@@ -23,6 +24,7 @@ import { TeachersPage } from '../features/admin/TeachersPage'
 import { NotificationsPage } from '../features/admin/NotificationsPage'
 import { ExportModal } from '../features/history/ExportModal'
 import { schoolTimezone } from '../lib/attendance'
+import { SiteFooter } from '../components/SiteFooter'
 
 export function Workspace({ userId }: { userId: string }) {
   const context = useRemote(getContext, 15_000)
@@ -31,6 +33,8 @@ export function Workspace({ userId }: { userId: string }) {
   const [loggingOut, setLoggingOut] = useState(false)
   const [now, setNow] = useState(() => new Date())
   const [exportOpen, setExportOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuToggle = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 30_000)
@@ -62,7 +66,13 @@ export function Workspace({ userId }: { userId: string }) {
 
   return <div className="ecic-shell">
     <a className="skip-link" href="#main">Ir al contenido</a>
-    <aside className="ecic-sidebar">
+    <aside className={`ecic-sidebar${menuOpen ? ' menu-open' : ''}`} onKeyDown={event => {
+      if (event.key === 'Escape' && menuOpen) {
+        setMenuOpen(false)
+        menuToggle.current?.focus()
+      }
+    }}>
+      <div className="ecic-mobile-header">
       <div className="ecic-brand-wrap">
         <img className="ecic-brand-mark" src="/favicon.svg" alt="" width="42" height="42" />
         <div className="ecic-brand-copy">
@@ -70,10 +80,22 @@ export function Workspace({ userId }: { userId: string }) {
           <span className="ecic-brand-badge">CLOCK-IN</span>
         </div>
       </div>
+      <button ref={menuToggle} className="ecic-user-card ecic-mobile-user" type="button" aria-expanded={menuOpen} aria-controls="ecic-navbar" onClick={() => setMenuOpen(open => !open)}>
+        <UserIdentity name={data.profile.full_name} admin={admin} />
+        <ChevronDown className="ecic-menu-chevron" size={16} aria-hidden="true" />
+      </button>
+      </div>
       <p className="ecic-sidebar-subtitle">Gestión de Personal Docente</p>
+      <div id="ecic-navbar" className="ecic-navbar">
+      <div className="ecic-navbar-content">
       <div className="ecic-nav-block">
         <p className="ecic-nav-label">ADMINISTRACIÓN</p>
-        <nav aria-label="Navegación principal" className="ecic-nav">
+        <nav aria-label="Navegación principal" className="ecic-nav" onClick={event => {
+          if ((event.target as HTMLElement).closest('a') && menuOpen) {
+            setMenuOpen(false)
+            menuToggle.current?.focus()
+          }
+        }}>
           {admin ? <>
             <NavLink to="/admin" end className={({ isActive }) => `ecic-nav-item${isActive ? ' active' : ''}`}><span className="ecic-nav-icon"><ClipboardCheck size={18} strokeWidth={1.75} /></span><span>Reporte de asistencia</span><span className="ecic-nav-dot" aria-hidden="true" /></NavLink>
             <NavLink to="/admin/docentes" className={({ isActive }) => `ecic-nav-item${isActive ? ' active' : ''}`}><span className="ecic-nav-icon"><Users size={18} strokeWidth={1.75} /></span><span>Docentes</span><SidebarCount value={sidebarCounts.data?.teachers} /></NavLink>
@@ -88,18 +110,16 @@ export function Workspace({ userId }: { userId: string }) {
         </nav>
       </div>
 
-      <div className="ecic-user-card">
-        <span className="ecic-user-avatar" aria-hidden="true">{data.profile.full_name.slice(0, 1)}</span>
-        <div className="ecic-user-meta">
-          <strong>{data.profile.full_name}</strong>
-          <span>{admin ? 'Administrador' : 'Docente'}</span>
-        </div>
+      <div className="ecic-user-card ecic-desktop-user">
+        <UserIdentity name={data.profile.full_name} admin={admin} />
       </div>
       <button className="ecic-logout" type="button" onClick={() => void logout()} disabled={loggingOut}>
         <LogOut size={16} strokeWidth={1.8} />
         {loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
       </button>
       {logoutError && <p className="feedback error" role="alert">{logoutError}</p>}
+      </div>
+      </div>
     </aside>
 
     <div className="ecic-main-panel">
@@ -116,10 +136,7 @@ export function Workspace({ userId }: { userId: string }) {
         <Routes>{admin ? <><Route path="/admin" element={<History admin context={data} />} /><Route path="/admin/docentes" element={<TeachersPage schoolDate={data.school_date} />} /><Route path="/admin/docentes/:teacherId" element={<TeacherPage context={data} />} /><Route path="/admin/docentes/:teacherId/editar" element={<TeacherPage context={data} editing />} /><Route path="/admin/avisos" element={<NotificationsPage />} /></> : <><Route path="/jornada" element={<Attendance context={data} refresh={context.refresh} />} /><Route path="/historial" element={<History context={data} />} /></>}<Route path="*" element={<Navigate to={admin ? '/admin' : '/jornada'} replace />} /></Routes>
       </main>
 
-      <footer className="ecic-footer">
-        <span>Clock-in ECIC • Sistema Institucional de Marcación Docente v3.4.2</span>
-        <span>Zona horaria: Ecuador continental (UTC-5)</span>
-      </footer>
+      <SiteFooter />
     </div>
   </div>
 }
@@ -127,4 +144,14 @@ export function Workspace({ userId }: { userId: string }) {
 function SidebarCount({ value, alert = false }: { value?: number; alert?: boolean }) {
   if (value === undefined) return null
   return <span className={`ecic-nav-badge${alert ? ' ecic-nav-badge-warning' : ''}`}>{value}</span>
+}
+
+function UserIdentity({ name, admin }: { name: string; admin: boolean }) {
+  return <>
+    <span className="ecic-user-avatar" aria-hidden="true">{name.slice(0, 1)}</span>
+    <span className="ecic-user-meta">
+      <strong>{name}</strong>
+      <span>{admin ? 'Administrador' : 'Docente'}</span>
+    </span>
+  </>
 }

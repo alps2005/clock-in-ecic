@@ -15,7 +15,7 @@ test('weekly exports use Monday through Friday, including weekends and year boun
 
 test('weekly exports collect every page and exclude prior weeks, weekends and future records', async () => {
   const calls: unknown[] = []
-  const report: Report = { as_of: '', page: 0, page_size: 2, totals: { expected: 6, on_time: 0, late: 0, absent: 0, missing_exit: 0, completed: 0 }, rows: [] }
+  const report: Report = { as_of: '', page: 0, page_size: 2, totals: { expected: 6, on_time: 0, late: 0, entry_on_time: 0, entry_late: 0, exit_on_time: 0, exit_late: 0, missing_entry: 0, absent: 0, missing_exit: 0, completed: 0 }, rows: [] }
   const dates = ['2026-09-15', '2026-09-14', '2026-09-11', '2026-09-19', '2026-09-18', '2026-09-16']
   const result = await loadWeeklyRows('2026-09-16', async (from, to, page) => {
     calls.push({ from, to, page })
@@ -42,4 +42,15 @@ test('Excel export produces a real XLSX archive', async () => {
   const bytes = new Uint8Array(await blob.arrayBuffer())
   assert.deepEqual([...bytes.slice(0, 4)], [0x50, 0x4b, 0x03, 0x04])
   assert.ok(bytes.length > 1000)
+})
+
+test('exports distinguish a full absence from an exit without entry', () => {
+  const absent: ReportRow = { ...row, entry_at: null, exit_at: null, entry_status: 'absent', exit_status: 'pending', worked_minutes: null, justification: null }
+  const missingEntry: ReportRow = { ...absent, exit_at: row.exit_at, entry_status: 'missing_entry', exit_status: 'registered' }
+  for (const admin of [false, true]) {
+    const table = exportTable([absent, missingEntry], admin)
+    const status = table.headers.indexOf('Estado')
+    assert.equal(table.values[0][status], 'Sin asistencia')
+    assert.equal(table.values[1][status], 'Sin entrada')
+  }
 })

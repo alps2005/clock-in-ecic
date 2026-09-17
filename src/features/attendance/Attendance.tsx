@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { ArrowDownLeft, ArrowUpRight, ScanLine, Sparkles } from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, ScanLine } from 'lucide-react'
 import type { AppContext, AttendanceRequest } from '../../types/app'
-import { attendanceAction, dateLabel, errorMessage, errors, timeLabel, wordCount } from '../../lib/attendance'
+import { attendanceAction, errorMessage, errors, timeLabel, wordCount } from '../../lib/attendance'
 import { recordAttendance } from '../../lib/api'
 const Scanner = lazy(() => import('./Scanner').then(module => ({ default: module.Scanner })))
 
@@ -70,7 +70,7 @@ export function Attendance({ context, refresh }: { context: AppContext; refresh:
   const exit = context.events.find(e => e.sequence_no === 2)
   const scannerAllowed = action === 'entry' || action === 'exit'
   return <>
-    <div className="page-heading"><div><p className="eyebrow">MI JORNADA</p><h1>Hola, {firstName}<span className="accent">.</span></h1><p>Un nuevo día para dejar huella.</p></div><div className="today"><strong>{dateLabel(context.school_date)}</strong><span>Lunes a viernes · ECIC</span></div></div>
+    <div className="page-heading"><div><h1>Hola, {firstName}</h1><p>Te deseamos una excelente jornada laboral.</p></div></div>
     {!online && <p className="feedback notice" role="alert">Estás sin conexión. Conéctate a internet para registrar tu asistencia.</p>}
     {message && <p className="feedback success" role="status">{message}</p>}{error && <p className="feedback error" role="alert">{error}</p>}
     <div className="attendance-grid"><section className="attendance-card"><div className="section-title"><h2>Tu asistencia de hoy</h2><span className={`badge ${exit ? 'green' : entry ? 'amber' : ''}`}>{exit ? 'Jornada registrada' : entry ? 'En jornada' : 'Sin entrada'}</span></div>
@@ -87,7 +87,7 @@ export function Attendance({ context, refresh }: { context: AppContext; refresh:
         {action === 'not_configured' && <p>La institución todavía no ha configurado el horario de asistencia.</p>}
         {action === 'refresh' && <p role="status">Actualizando el día de registro…</p>}
       </div>}
-    </section><aside className="schedule-card"><span className="card-eyebrow">TU HORARIO</span><h2>Cada momento<br />tiene su lugar.</h2><div className="schedule-line"><span className="schedule-dot" /><div><small>ENTRADA</small><strong>{entryOpens} — {entryCloses}</strong><p>Escanea el QR al llegar.</p></div></div><div className="schedule-line"><span className="schedule-dot" /><div><small>SALIDA</small><strong>{exitOpens} — {exitCloses}</strong><p>Registra el cierre de tu jornada.</p></div></div><p className="schedule-footnote">Fuera de estas ventanas, el escáner permanece bloqueado.</p><Sparkles className="schedule-flower" size={34} strokeWidth={1.4} aria-hidden="true" /></aside></div>
+    </section><aside className="schedule-card"><h2>Tu horario</h2><div className="schedule-line"><span className="schedule-dot" /><div><small>ENTRADA</small><strong>{entryOpens} — {entryCloses}</strong><p>Escanea el QR al llegar.</p></div></div><div className="schedule-line"><span className="schedule-dot" /><div><small>SALIDA</small><strong>{exitOpens} — {exitCloses}</strong><p>Registra el cierre de tu jornada.</p></div></div><p className="schedule-footnote">Fuera de estas ventanas, el escáner permanece bloqueado.</p></aside></div>
     {scanning && scannerAllowed && !pending && online && <Suspense fallback={<p role="status">Abriendo la cámara…</p>}><Scanner onClose={() => setScanning(false)} onScan={qr => begin(action, qr)} /></Suspense>}
   </>
 }

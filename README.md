@@ -20,6 +20,14 @@ while attendance records remain available in the general admin report.
 Deploy `202609150002_teacher_details.sql` and the updated `admin-teachers` Edge Function
 before deploying the frontend. The new detail and history RPCs require an active admin session.
 
+## Attendance statistics
+
+Apply `202609170001_attendance_statistics.sql` and
+`202609170002_separate_entry_exit_statistics.sql` before deploying the statistics update.
+The cards display separate Entradas and Salidas rows, with FALTAS as a daily total.
+Teacher and admin reports count on-time and late entry/exit marks separately, using each
+mark’s own time window. Missing entries, missing exits and full absences count teacher-days. Full absences are counted only after the exit window closes.
+
 ## Develop
 
 Use Node 24 (`.nvmrc`), then:

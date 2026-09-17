@@ -1,19 +1,29 @@
 import { expect, test } from '@playwright/test'
-import { mockBackend, signIn } from './mock.ts'
+import { mockBackend, openNavigation, signIn } from './mock.ts'
 
 test('teacher session restores, guards admin routes and clears private UI at logout', async ({ page }, testInfo) => {
   await mockBackend(page)
   await signIn(page)
   await expect(page).toHaveURL(/\/jornada$/)
-  await expect(page.getByRole('heading', { name: 'Hola, Ana.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Hola, Ana', exact: true })).toBeVisible()
   await page.screenshot({ path: testInfo.outputPath('attendance.png'), fullPage: true })
   await page.reload()
-  await expect(page.getByRole('heading', { name: 'Hola, Ana.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Hola, Ana', exact: true })).toBeVisible()
   await page.goto('/admin')
   await expect(page).toHaveURL(/\/jornada$/)
+  await openNavigation(page)
   await page.getByRole('link', { name: 'Mi historial' }).click()
-  await expect(page.getByRole('heading', { name: 'Mi historial.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Mi historial', exact: true })).toBeVisible()
+  await expect(page.getByText('Tus jornadas, en un solo lugar.', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Actualizar Historial', exact: true })).toBeVisible()
+  await expect(page.locator('.personal-history .eyebrow')).toHaveCount(0)
+  await expect(page.locator('.attendance-stats')).toBeVisible()
+  const report = (await page.locator('.report-card').boundingBox())!
+  const stats = (await page.locator('.attendance-stats').boundingBox())!
+  expect(stats.y).toBeGreaterThan(report.y + report.height)
+
   await expect(page.getByText('Salida no registrada', { exact: true })).toBeVisible()
+  await openNavigation(page)
   await page.getByRole('button', { name: 'Cerrar sesión' }).click()
   await expect(page.getByRole('heading', { name: 'Asistencia Docente ECIC' })).toBeVisible()
   await expect(page.getByText('Ana Torres')).toHaveCount(0)
@@ -66,6 +76,7 @@ test('admins see reports and missed-exit notices, filter results and cannot ente
   await page.getByLabel(/^Docente$/i).fill('Nadie')
   await page.getByRole('button', { name: 'Consultar' }).click()
   await expect(page.getByRole('heading', { name: 'No hay registros para esta consulta' })).toBeVisible()
+  await openNavigation(page)
   await page.getByRole('link', { name: /Notificaciones/ }).click()
   await expect(page.getByRole('heading', { name: 'Ana Torres' })).toBeVisible()
   await page.goto('/jornada')
@@ -148,7 +159,7 @@ test('camera recovers from denied permission, shows scan boundary, decodes a rea
 test('a disabled session cannot restore teacher data', async ({ page }) => {
   const backend = await mockBackend(page)
   await signIn(page)
-  await expect(page.getByRole('heading', { name: 'Hola, Ana.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Hola, Ana', exact: true })).toBeVisible()
   backend.disable()
   await page.reload()
   await expect(page.getByText('Tu cuenta no tiene acceso.', { exact: false })).toBeVisible()

@@ -25,7 +25,7 @@ export async function loadWeeklyRows(today: string, loadPage: (from: string, to:
   }
 }
 
-const entryLabels = { on_time: 'A tiempo', late: 'Atraso justificado', late_pending: 'Atraso sin justificación', absent: 'Sin entrada', pending: 'Pendiente' }
+const entryLabels = { on_time: 'A tiempo', late: 'Atraso justificado', late_pending: 'Atraso sin justificación', missing_entry: 'Sin entrada', absent: 'Sin asistencia', pending: 'Pendiente' }
 
 export function exportTable(rows: ReportRow[], admin: boolean) {
   const headers = [...(admin ? ['Docente', 'Cédula'] : []), 'Fecha', 'Entrada', 'Salida', 'Estado', 'Tiempo', 'Justificación']

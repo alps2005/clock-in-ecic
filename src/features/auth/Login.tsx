@@ -3,6 +3,7 @@ import type { FormEvent } from 'react'
 import { ArrowUpRight, Clock3 } from 'lucide-react'
 import { config, supabase } from '../../lib/supabase'
 import { loginIdentity, validCedula } from '../../lib/attendance'
+import { SiteFooter } from '../../components/SiteFooter'
 
 const clockFormatter = new Intl.DateTimeFormat('es-EC', {
   timeZone: 'America/Guayaquil',
@@ -57,12 +58,6 @@ export function Login() {
         </form><p className="login-help">¿Olvidaste tu contraseña?<br />Solicita el restablecimiento a la <a href="https://wa.me/593967953821" target="_blank" rel="noopener noreferrer" aria-label="Contactar a administración por WhatsApp (se abre en una pestaña nueva)"><strong>administración</strong></a>.</p>
       </section>
     </main>
-    <footer className="site-footer">
-      <span>Escuela Centinela Iberoamericana Cristiana</span>
-      <span className="footer-copyright">© 2026. Todos los derechos reservados.</span>
-      <a className="footer-github" href="https://github.com/alps2005" target="_blank" rel="noopener noreferrer" aria-label="Perfil de GitHub de alps2005 (se abre en una pestaña nueva)">
-        <svg width="24" height="24" aria-hidden="true"><use href="/icons.svg#github-icon" /></svg>
-      </a>
-    </footer>
+    <SiteFooter />
   </div>
 }

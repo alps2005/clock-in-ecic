@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { mockBackend, signIn } from './mock.ts'
+import { mockBackend, openNavigation, signIn } from './mock.ts'
 import type { TeacherAccount, TeacherMutation } from '../../src/types/app.ts'
 
 const teacherId = '20000000-0000-0000-0000-000000000009'
@@ -16,7 +16,7 @@ test('administrator manages a teacher from the directory and dedicated page', as
   })
   await page.route('**/rest/v1/rpc/admin_teacher_report', route => {
     reports.push(route.request().postDataJSON())
-    return route.fulfill({ json: { as_of: '2026-09-14T11:30:00Z', page: 0, page_size: 25, rows: [], totals: { expected: 0, on_time: 0, late: 0, absent: 0, missing_exit: 0, completed: 0 } } })
+    return route.fulfill({ json: { as_of: '2026-09-14T11:30:00Z', page: 0, page_size: 25, rows: [], totals: { expected: 0, on_time: 0, late: 0, entry_on_time: 0, entry_late: 0, exit_on_time: 0, exit_late: 0, missing_entry: 0, absent: 0, missing_exit: 0, completed: 0 } } })
   })
   await page.route('**/functions/v1/admin-teachers', async route => {
     const input = route.request().postDataJSON() as TeacherMutation
@@ -28,6 +28,7 @@ test('administrator manages a teacher from the directory and dedicated page', as
     await route.fulfill({ json: { ok: true, id: teacherId } })
   })
   await signIn(page)
+  await openNavigation(page)
   await page.getByRole('link', { name: /^Docentes(?: \d+)?$/ }).click()
   const search = await page.getByLabel('Buscar por nombre o C.I.').boundingBox()
   const button = await page.getByRole('button', { name: 'Buscar', exact: true }).boundingBox()

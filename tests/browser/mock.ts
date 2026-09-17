@@ -38,7 +38,7 @@ export async function mockBackend(page: Page, options: { role?: 'teacher' | 'adm
     if (url.pathname.endsWith('/attendance_report')) {
       const request = route.request().postDataJSON() as { p_search: string }
       const row: ReportRow = { teacher_id: profileId, full_name: 'Ana Torres', cedula: '0000000001', school_date: '2026-09-14', entry_at: '2026-09-14T11:30:00Z', exit_at: null, justification: 'El transporte tuvo un retraso.', entry_status: 'late', exit_status: 'missing', worked_minutes: null }
-      const report: Report = { as_of: serverTime, page: 0, page_size: 25, rows: request.p_search === 'Nadie' ? [] : [row], totals: { expected: request.p_search === 'Nadie' ? 0 : 1, on_time: 1, late: 0, absent: 0, missing_exit: 1, completed: 0 } }
+      const report: Report = { as_of: serverTime, page: 0, page_size: 25, rows: request.p_search === 'Nadie' ? [] : [row], totals: { expected: request.p_search === 'Nadie' ? 0 : 1, on_time: 1, late: 0, entry_on_time: 1, entry_late: 0, exit_on_time: 0, exit_late: 0, missing_entry: 0, absent: 0, missing_exit: 1, completed: 0 } }
       return json(report)
     }
     if (url.pathname.endsWith('/admin_notifications')) return json({ total: 1, rows: [{ teacher_id: profileId, full_name: 'Ana Torres', cedula: '0000000001', kind: 'exit', school_date: '2026-09-14', entry_at: '2026-09-14T11:30:00Z' }] })
@@ -52,4 +52,10 @@ export async function signIn(page: Page) {
   await page.getByLabel('Cédula', { exact: true }).fill('0000000001')
   await page.getByLabel('Contraseña', { exact: true }).fill('fixture-password-only')
   await page.getByRole('button', { name: 'Ingresar', exact: true }).click()
+}
+
+export async function openNavigation(page: Page) {
+  await page.locator('.ecic-sidebar').waitFor()
+  const toggle = page.locator('.ecic-mobile-user')
+  if (await toggle.isVisible() && await toggle.getAttribute('aria-expanded') === 'false') await toggle.click()
 }
