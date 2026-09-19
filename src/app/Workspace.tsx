@@ -28,7 +28,7 @@ import { SiteFooter } from '../components/SiteFooter'
 
 export function Workspace({ userId }: { userId: string }) {
   const context = useRemote(getContext, 15_000)
-  const sidebarCounts = useRemote(getAdminSidebarCounts, 30_000)
+  const sidebarCounts = useRemote(getAdminSidebarCounts, 30_000, !context.loading && !context.error && context.data?.profile.auth_user_id === userId && context.data.profile.role === 'admin', true)
   const [logoutError, setLogoutError] = useState('')
   const [loggingOut, setLoggingOut] = useState(false)
   const [now, setNow] = useState(() => new Date())
