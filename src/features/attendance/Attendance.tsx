@@ -1,6 +1,9 @@
 import { usePageRefresh } from '../../app/usePageRefresh'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import { ArrowDownLeft, ArrowUpRight, ScanLine } from 'lucide-react'
+import { Clock3, LogIn, LogOut, LockKeyhole, Info, CircleCheck, ScanLine } from 'lucide-react'
+import { Link } from 'react-router'
+import { getJornadaState, jornadaTimeline } from '../../lib/jornada'
+import { schoolTimezone } from '../../lib/attendance'
 import type { AppContext, AttendanceRequest } from '../../types/app'
 import { attendanceAction, errorMessage, errors, timeLabel, wordCount } from '../../lib/attendance'
 import { recordAttendance } from '../../lib/api'
@@ -19,7 +22,7 @@ export function Attendance({ context, refresh }: { context: AppContext; refresh:
   const now = new Date(clock.source === context.server_time ? clock.time : Date.parse(context.server_time))
   useEffect(() => {
     const received = performance.now()
-    const timer = window.setInterval(() => setClock({ source: context.server_time, time: Date.parse(context.server_time) + Math.max(0, performance.now() - received) }), 250)
+    const timer = window.setInterval(() => setClock({ source: context.server_time, time: Date.parse(context.server_time) + Math.max(0, performance.now() - received) }), 1000)
     return () => clearInterval(timer)
   }, [context.server_time])
   const action = attendanceAction(context, now)
@@ -71,25 +74,29 @@ export function Attendance({ context, refresh }: { context: AppContext; refresh:
   const entry = context.events.find(e => e.sequence_no === 1)
   const exit = context.events.find(e => e.sequence_no === 2)
   const scannerAllowed = action === 'entry' || action === 'exit'
+  const state = getJornadaState(now, context, context.events)
+  const timeline = context.policy ? jornadaTimeline(context.policy, now) : null
+  const seconds = new Intl.DateTimeFormat('en-GB', { timeZone: schoolTimezone, second: '2-digit' }).format(now).padStart(2, '0')
   return <>
-    <div className="page-heading"><div><h1>Hola, {firstName}</h1><p>Te deseamos una excelente jornada laboral.</p></div></div>
+    <div className="page-heading"><div><h1>Hola, {firstName}</h1><p>Te deseamos una excelente jornada laboral.</p></div><span className={`ui-badge tone-${state.tone}`}>{state.label}</span></div>
+    <div className={`jornada-alert tone-${state.tone === 'neutral' ? 'accent' : state.tone}`} role="status">{state.tone === 'success' ? <CircleCheck size={20} aria-hidden="true" /> : <Info size={20} aria-hidden="true" />}<div><strong>{state.title}</strong><p>{state.description}</p></div>{state.showHistory && <Link className="button secondary" to="/historial">Ver mi historial</Link>}</div>
     {!online && <p className="feedback notice" role="alert">Estás sin conexión. Conéctate a internet para registrar tu asistencia.</p>}
     {message && <p className="feedback success" role="status">{message}</p>}{error && <p className="feedback error" role="alert">{error}</p>}
-    <div className="attendance-grid"><section className="attendance-card"><div className="section-title"><h2>Tu asistencia de hoy</h2><span className={`badge ${exit ? 'green' : entry ? 'amber' : ''}`}>{exit ? 'Jornada registrada' : entry ? 'En jornada' : 'Sin entrada'}</span></div>
-      <div className="clock-display"><span>HORA DE LA INSTITUCIÓN</span><strong>{timeLabel(now.toISOString())}</strong><p>Ecuador continental · UTC−5</p></div>
-      <div className="event-pair"><div><span><ArrowUpRight size={15} strokeWidth={1.8} aria-hidden="true" />Entrada</span><strong>{timeLabel(entry?.occurred_at ?? null)}</strong><small>{entry?.kind === 'late_entry' ? 'Atraso justificado' : entry ? 'A tiempo' : 'Pendiente'}</small></div><div><span><ArrowDownLeft size={15} strokeWidth={1.8} aria-hidden="true" />Salida</span><strong>{timeLabel(exit?.occurred_at ?? null)}</strong><small>{exit ? 'Registrada' : action === 'missing_exit' ? 'Salida no registrada' : 'Pendiente'}</small></div></div>
+    <div className="jornada-kpis">
+      <section className="ui-card jornada-kpi"><div className="kpi-heading"><h2>Hora de la institución</h2><Clock3 size={18} aria-hidden="true" /></div><div className="kpi-value numeric">{timeLabel(now.toISOString())}<span>:{seconds}</span></div><p>Ecuador continental, UTC−5</p></section>
+      {[{ title: 'Entrada', Icon: LogIn, event: entry, status: state.entry }, { title: 'Salida', Icon: LogOut, event: exit, status: state.exit }].map(({ title, Icon, event, status }) => <section key={title} className="ui-card jornada-kpi"><div className="kpi-heading"><h2><Icon size={17} aria-hidden="true" />{title}</h2><span className={`ui-badge tone-${status.tone}`}>{status.label}</span></div><div className="kpi-value numeric">{timeLabel(event?.occurred_at ?? null)}</div><p>{status.hint}</p></section>)}
+    </div>
+    {(pending || scannerAllowed || action === 'late_entry') && <section className="ui-card attendance-actions" aria-label="Registrar asistencia">
       {pending ? <div className="action-block"><h3>Registro pendiente de confirmación</h3><p>Conservamos tu solicitud para verificar el resultado.</p><button className="button primary" disabled={busy || !online} onClick={() => void send(pending)}>{busy ? 'Comprobando…' : 'Comprobar registro'}</button></div> : <div className="action-block">
         {scannerAllowed && <><p>Escanea el código QR de la institución para registrar tu {action === 'entry' ? 'entrada' : 'salida'}.</p><button className="button primary" disabled={busy || !online} onClick={() => { setError(''); setScanning(true) }}><ScanLine size={17} strokeWidth={1.9} aria-hidden="true" />Escanear {action === 'entry' ? 'entrada' : 'salida'}</button></>}
         {action === 'late_entry' && <form onSubmit={event => { event.preventDefault(); if (wordCount(justification) > 0 && wordCount(justification) <= 250) begin('late_entry', null) }}><span className="badge amber">Atraso</span><h3>Cuéntanos el motivo de tu atraso</h3><p>El escaneo de entrada terminó a las {entryCloses}. Tu entrada se registrará al enviar esta justificación.</p><label htmlFor="justification">Justificación</label><textarea id="justification" required maxLength={10000} rows={4} value={justification} onChange={event => setJustification(event.target.value)} aria-describedby="word-count" /><span id="word-count" className={wordCount(justification) > 250 ? 'word-count invalid' : 'word-count'}>{wordCount(justification)} / 250 palabras</span><button className="button primary" disabled={busy || !online || wordCount(justification) === 0 || wordCount(justification) > 250}>Registrar entrada con justificación</button></form>}
-        {action === 'before_entry' && <><h3>Tu jornada está por comenzar</h3><p>El escáner de entrada estará disponible a las {entryOpens}.</p></>}
-        {action === 'before_exit' && <><h3>Que tengas una buena jornada</h3><p>Podrás registrar tu salida entre las {exitOpens} y las {exitCloses}.</p></>}
-        {action === 'missing_exit' && <div className="feedback notice"><h3>Salida no registrada</h3><p>El escaneo terminó a las {exitCloses}. La administración tiene una notificación en su panel.</p></div>}
-        {action === 'complete' && <><h3>Gracias por estar presente</h3><p>Tu entrada y salida quedaron registradas. Puedes consultarlas en tu historial.</p></>}
-        {action === 'not_working' && <><h3>Hoy no tienes una jornada programada</h3><p>Consulta tus registros anteriores en Mi historial.</p></>}
-        {action === 'not_configured' && <p>La institución todavía no ha configurado el horario de asistencia.</p>}
-        {action === 'refresh' && <p role="status">Actualizando el día de registro…</p>}
-      </div>}
-    </section><aside className="schedule-card"><h2>Tu horario</h2><div className="schedule-line"><span className="schedule-dot" /><div><small>ENTRADA</small><strong>{entryOpens} — {entryCloses}</strong><p>Escanea el QR al llegar.</p></div></div><div className="schedule-line"><span className="schedule-dot" /><div><small>SALIDA</small><strong>{exitOpens} — {exitCloses}</strong><p>Registra el cierre de tu jornada.</p></div></div><p className="schedule-footnote">Fuera de estas ventanas, el escáner permanece bloqueado.</p></aside></div>
+      </div>}</section>}
+    <section className={`ui-card jornada-schedule${!context.working_day ? ' no-jornada' : ''}`}>
+      <h2>Tu horario</h2><p className="schedule-description">{!context.working_day ? 'Horario habitual. Hoy no aplica porque no tienes jornada.' : 'Tus ventanas de registro para la jornada de hoy.'}</p>
+      {timeline && <div className="day-timeline" aria-label={`Horario: entrada de ${entryOpens} a ${entryCloses}, salida de ${exitOpens} a ${exitCloses}`}><div className="timeline-track">{timeline.windows.map((window, index) => <span key={index} className="timeline-window" style={{ left: `${window.left}%`, width: `${window.width}%` }} />)}<span className="timeline-marker" style={{ left: `${timeline.marker}%` }}><span style={{ transform: timeline.marker < 10 ? 'translateX(0)' : timeline.marker > 90 ? 'translateX(-100%)' : 'translateX(-50%)' }}>{timeLabel(now.toISOString())}</span></span></div><div className="timeline-ticks numeric">{timeline.ticks.map(tick => <span key={tick}>{tick}</span>)}</div></div>}
+      {[{ title: 'Entrada', Icon: LogIn, start: entryOpens, end: entryCloses, hint: 'Escanea el QR al llegar.', status: state.entry }, { title: 'Salida', Icon: LogOut, start: exitOpens, end: exitCloses, hint: 'Registra el cierre de tu jornada.', status: state.exit }].map(({ title, Icon, start, end, hint, status }) => <div className="jornada-window" key={title}><span className="window-icon"><Icon size={18} aria-hidden="true" /></span><div><h3>{title}</h3><strong className="numeric">{start}–{end}</strong><p>{hint}</p></div><span className={`ui-badge tone-${status.tone}`}>{status.window}</span></div>)}
+      <p className="jornada-lock"><LockKeyhole size={14} aria-hidden="true" />Fuera de estas ventanas, el escáner permanece bloqueado.</p>
+    </section>
     {scanning && scannerAllowed && !pending && online && <Suspense fallback={<p role="status">Abriendo la cámara…</p>}><Scanner onClose={() => setScanning(false)} onScan={qr => begin(action, qr)} /></Suspense>}
   </>
 }

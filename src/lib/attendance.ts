@@ -15,7 +15,7 @@ export function timeLabel(value: string | null) {
 export function dateLabel(value: string) {
   return new Intl.DateTimeFormat('es-EC', { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${value}T12:00:00Z`))
 }
-export function attendanceAction(context: AppContext, now: Date) {
+export function attendanceAction(context: Pick<AppContext, 'policy' | 'school_date' | 'working_day' | 'events'>, now: Date) {
   if (!context.policy) return 'not_configured'
   if (schoolDate(now) !== context.school_date) return 'refresh'
   if (!context.working_day) return 'not_working'
