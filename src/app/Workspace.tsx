@@ -1,4 +1,5 @@
 import '../teacher.css'
+import { TeacherHistory } from '../features/history/TeacherHistory'
 import { TeacherShell } from './TeacherShell'
 import { NavLink, Navigate, Route, Routes } from 'react-router'
 import { useEffect, useRef, useState } from 'react'
@@ -67,7 +68,7 @@ export function Workspace({ userId }: { userId: string }) {
   }).format(now)
 
   if (!admin) return <TeacherShell context={data} logout={() => void logout()} loggingOut={loggingOut} logoutError={logoutError}>
-    <Routes><Route path="/jornada" element={<Attendance context={data} refresh={context.refresh} />} /><Route path="/historial" element={<History context={data} />} /><Route path="*" element={<Navigate to="/jornada" replace />} /></Routes>
+    <Routes><Route path="/jornada" element={<Attendance context={data} refresh={context.refresh} />} /><Route path="/historial" element={<TeacherHistory context={data} />} /><Route path="*" element={<Navigate to="/jornada" replace />} /></Routes>
   </TeacherShell>
 
   return <div className="ecic-shell">
@@ -139,7 +140,7 @@ export function Workspace({ userId }: { userId: string }) {
       {exportOpen && <ExportModal admin={admin} close={() => setExportOpen(false)} />}
 
       <main id="main" className="ecic-workbench" tabIndex={-1}>
-        <Routes>{admin ? <><Route path="/admin" element={<History admin context={data} />} /><Route path="/admin/docentes" element={<TeachersPage schoolDate={data.school_date} />} /><Route path="/admin/docentes/:teacherId" element={<TeacherPage context={data} />} /><Route path="/admin/docentes/:teacherId/editar" element={<TeacherPage context={data} editing />} /><Route path="/admin/avisos" element={<NotificationsPage />} /></> : <><Route path="/jornada" element={<Attendance context={data} refresh={context.refresh} />} /><Route path="/historial" element={<History context={data} />} /></>}<Route path="*" element={<Navigate to={admin ? '/admin' : '/jornada'} replace />} /></Routes>
+        <Routes>{admin ? <><Route path="/admin" element={<History admin context={data} />} /><Route path="/admin/docentes" element={<TeachersPage schoolDate={data.school_date} />} /><Route path="/admin/docentes/:teacherId" element={<TeacherPage context={data} />} /><Route path="/admin/docentes/:teacherId/editar" element={<TeacherPage context={data} editing />} /><Route path="/admin/avisos" element={<NotificationsPage />} /></> : <><Route path="/jornada" element={<Attendance context={data} refresh={context.refresh} />} /><Route path="/historial" element={<TeacherHistory context={data} />} /></>}<Route path="*" element={<Navigate to={admin ? '/admin' : '/jornada'} replace />} /></Routes>
       </main>
 
       <SiteFooter />

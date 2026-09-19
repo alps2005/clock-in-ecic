@@ -1,3 +1,4 @@
+import { notify } from '../../app/usePageRefresh'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Download, FileSpreadsheet, X } from 'lucide-react'
 import { useRemote } from '../../app/useRemote'
@@ -34,10 +35,13 @@ export function ExportModal({ admin, close }: { admin: boolean; close: () => voi
     if (!result.data || downloading) return
     setDownloading(true)
     setDownloadError('')
+    if (!admin) notify('Exportando tu historial…')
     try {
       const blob = format === 'csv' ? new Blob([tableCsv(table)], { type: 'text/csv;charset=utf-8' }) : await excelBlob(table)
       downloadBlob(blob, `asistencia-${result.data.from}-${result.data.to}.${format}`)
+      if (!admin) notify('Historial exportado')
     } catch {
+      if (!admin) notify('No se pudo exportar el historial')
       setDownloadError('No se pudo descargar el archivo. Inténtalo nuevamente.')
     } finally { setDownloading(false) }
   }
@@ -49,7 +53,7 @@ export function ExportModal({ admin, close }: { admin: boolean; close: () => voi
     }
   }}>
     <div className="export-heading">
-      <div><p className="eyebrow">EXPORTAR ASISTENCIA</p><h2 id="export-title">Asistencia de esta semana</h2></div>
+      <div><p className="eyebrow">{admin ? 'EXPORTAR ASISTENCIA' : 'Exportar asistencia'}</p><h2 id="export-title">Asistencia de esta semana</h2></div>
       <button type="button" className="ecic-ghost-button" aria-label="Cerrar exportación" onClick={close} autoFocus><X size={18} aria-hidden="true" /></button>
     </div>
     <p id="export-description" className="export-description">De lunes a viernes · {admin ? 'Todos los docentes' : 'Mis registros'} · Hora de Ecuador (UTC-5).</p>
