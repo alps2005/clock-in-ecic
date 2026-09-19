@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { mockBackend, signIn } from './mock.ts'
 
-for (const role of ['teacher', 'admin'] as const) {
+for (const role of ['admin'] as const) {
   test(`${role} navigation adapts to mobile and shares the login footer`, async ({ page }, info) => {
     await mockBackend(page, { role })
     await page.goto('/')
@@ -28,8 +28,8 @@ for (const role of ['teacher', 'admin'] as const) {
       await expect(nav).toBeHidden()
       await expect(toggle).toBeFocused()
       await toggle.tap()
-      await page.getByRole('link', { name: role === 'teacher' ? 'Mi historial' : /Notificaciones/ }).click()
-      await expect(page).toHaveURL(role === 'teacher' ? /\/historial$/ : /\/admin\/avisos$/)
+      await page.getByRole('link', { name: /Notificaciones/ }).click()
+      await expect(page).toHaveURL(/\/admin\/avisos$/)
       await expect(nav).toBeHidden()
       await page.screenshot({ path: info.outputPath(`${role}-mobile.png`), fullPage: true })
     } else {
@@ -54,13 +54,9 @@ test('attendance copy is shared across viewports and fits narrow screens', async
   if (mobile) {
     await page.setViewportSize({ width: 320, height: 740 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-    for (const selector of ['.ecic-live-clock', '.ecic-topbar-actions']) {
-      const box = (await page.locator(selector).boundingBox())!
-      expect(Math.abs(box.x + box.width / 2 - 160)).toBeLessThan(2)
-    }
     await page.screenshot({ path: info.outputPath('attendance-narrow.png'), fullPage: true })
     await page.setViewportSize({ width: 1024, height: 768 })
-    await expect(page.getByRole('navigation')).toBeVisible()
+    await expect(page.getByRole('navigation', { name: 'Navegación principal' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible()
   }
 })

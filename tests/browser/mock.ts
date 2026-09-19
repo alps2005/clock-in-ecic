@@ -42,7 +42,7 @@ export async function mockBackend(page: Page, options: { role?: 'teacher' | 'adm
       return json(report)
     }
     if (url.pathname.endsWith('/admin_notifications')) return json({ total: 1, rows: [{ teacher_id: profileId, full_name: 'Ana Torres', cedula: '0000000001', kind: 'exit', school_date: '2026-09-14', entry_at: '2026-09-14T11:30:00Z' }] })
-    if (url.pathname.endsWith('/admin_sidebar_counts')) return json({ teachers: 29, justifications: 3, notifications: 1 })
+    if (url.pathname.endsWith('/admin_sidebar_counts')) return role === 'admin' ? json({ teachers: 29, justifications: 3, notifications: 1 }) : json({ message: 'ACCESS_DENIED', code: 'P0001', hint: null, details: null }, 400)
     return json({ message: 'Unexpected test request' }, 500)
   })
   return { events, requests, disable: () => { inactive = true } }
@@ -52,10 +52,12 @@ export async function signIn(page: Page) {
   await page.getByLabel('Cédula', { exact: true }).fill('0000000001')
   await page.getByLabel('Contraseña', { exact: true }).fill('fixture-password-only')
   await page.getByRole('button', { name: 'Ingresar', exact: true }).click()
+  await page.waitForURL(/\/(jornada|admin)$/)
 }
 
 export async function openNavigation(page: Page) {
-  await page.locator('.ecic-sidebar').waitFor()
+  await page.locator('.ecic-sidebar, .teacher-shell').waitFor()
+  if (await page.locator('.teacher-shell').count()) return
   const toggle = page.locator('.ecic-mobile-user')
   if (await toggle.isVisible() && await toggle.getAttribute('aria-expanded') === 'false') await toggle.click()
 }

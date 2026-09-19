@@ -253,13 +253,13 @@ input, textarea { width: 100%; border: 1px solid var(--border-control); backgrou
   .history-page > .filter-bar { margin-top: 0; }
 }
 .stats-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
-.stat, .report-card, .attendance-card, .schedule-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
+.stat, .report-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02); }
 .stat { padding: 18px; display: grid; gap: 9px; }
 .stat > span, .stat small, .muted, .report-card .section-title .muted { color: var(--text-muted); }
 .stat > span { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
 .stat strong { font-size: 2.4rem; letter-spacing: -0.06em; line-height: 1; }
 .stat small { font-size: 0.73rem; }
-.report-card, .attendance-card, .schedule-card { padding: 22px; }
+.report-card { padding: 22px; }
 .section-title { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .section-title h2 { margin: 0; font-size: 1.05rem; }
 .badge { display: inline-flex; align-items: center; width: fit-content; padding: 6px 9px; border-radius: 999px; background: var(--surface-muted); color: var(--text-muted); font-size: 0.68rem; font-weight: 700; }
@@ -274,25 +274,10 @@ input, textarea { width: 100%; border: 1px solid var(--border-control); backgrou
 .table-scroll td small { display: block; color: var(--text-muted); margin-top: 3px; }
 .pager { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 18px; color: var(--text-muted); font-size: 0.74rem; }
 .pager > div, .teacher-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.attendance-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr); gap: 18px; }
-.attendance-card { min-width: 0; }
-.clock-display { margin: 26px 0 22px; padding: 22px; text-align: center; border-radius: 14px; background: var(--surface-sky); }
-.clock-display span, .schedule-line small { display: block; color: var(--text-muted); font-size: 0.66rem; letter-spacing: 0.13em; font-weight: 700; }
-.clock-display strong { display: block; margin: 8px 0 4px; font-size: clamp(2.6rem, 6vw, 4.8rem); letter-spacing: -0.08em; line-height: 1; }
-.clock-display p, .event-pair small, .action-block p, .schedule-line p { color: var(--text-muted); font-size: 0.78rem; margin: 0; }
-.event-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.event-pair > div { padding: 16px; background: var(--surface-muted); border-radius: 12px; }
-.event-pair span { display: flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 0.72rem; font-weight: 700; }
-.event-pair strong { display: block; margin: 8px 0 4px; font-size: 1.3rem; }
+.action-block p { color: var(--text-muted); font-size: 0.78rem; margin: 0; }
 .action-block { margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--border); }
 .action-block h3 { margin: 0 0 8px; font-size: 1rem; }
 .action-block .button, .action-block form .button { margin-top: 16px; }
-.schedule-card { position: relative; overflow: hidden; background: var(--surface-sky-strong); border-color: var(--border-sky); }
-.schedule-card h2 { margin: 0 0 34px; font-size: 2rem; line-height: 1.08; letter-spacing: -0.06em; font-weight: 550; }
-.schedule-line { display: flex; gap: 12px; margin: 0 0 24px; }
-.schedule-dot { flex: 0 0 10px; width: 10px; height: 10px; margin-top: 4px; border-radius: 50%; background: var(--brand-sky); box-shadow: 0 0 0 5px var(--border-sky); }
-.schedule-line strong { display: block; margin: 5px 0; }
-.schedule-footnote { padding-top: 18px; border-top: 1px solid var(--border-sky); color: var(--brand-charcoal); font-size: 0.75rem; line-height: 1.6; }
 .teacher-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 16px; }
 .teacher-checkbox { display: flex; align-items: center; gap: 8px; }
 .teacher-checkbox input { width: auto; min-height: 0; }
@@ -349,19 +334,12 @@ input, textarea { width: 100%; border: 1px solid var(--border-control); backgrou
   .attendance-stat-group > div > :last-child { grid-column: 1 / -1; }
   .stat { padding: 14px; border-radius: 14px; }
   .stat strong { font-size: 2rem; }
-  .report-card, .attendance-card, .schedule-card { padding: 16px; border-radius: 14px; }
+  .report-card { padding: 16px; border-radius: 14px; }
   .section-title { align-items: flex-start; }
   .section-title h2 { font-size: 0.98rem; }
   .pager { display: grid; gap: 12px; }
   .pager > div { display: grid; grid-template-columns: 1fr 1fr; }
   .pager .button { width: 100%; }
-  .attendance-grid { grid-template-columns: 1fr; }
-  .clock-display { margin: 20px 0 16px; padding: 18px 12px; }
-  .clock-display strong { font-size: clamp(2.5rem, 15vw, 4rem); }
-  .event-pair { gap: 8px; }
-  .event-pair > div { padding: 13px 11px; }
-  .event-pair strong { font-size: 1.1rem; }
-  .schedule-card h2 { margin: 0 0 24px; font-size: 1.8rem; }
   .teacher-fields { grid-template-columns: 1fr; }
   .teacher-actions { display: grid; grid-template-columns: 1fr; }
   .teacher-actions .button { width: 100%; }
@@ -387,6 +365,5 @@ input, textarea { width: 100%; border: 1px solid var(--border-control); backgrou
   .stats-grid { gap: 8px; }
   .stat > span { font-size: 0.63rem; }
   .stat strong { font-size: 1.8rem; }
-  .event-pair { grid-template-columns: 1fr; }
   .ecic-table-header { padding: 16px; }
 }

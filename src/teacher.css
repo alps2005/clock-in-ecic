@@ -195,3 +195,43 @@
 .calendar-days button:hover { background: var(--accent); }
 .calendar-days button.selected { background: var(--primary); color: var(--primary-foreground); }
 .calendar-days button.other-month { color: var(--muted-foreground); }
+/* Prototype alignment; business actions remain available beside the visual states. */
+.teacher-sidebar { padding: 12px 8px; }
+.teacher-brand { padding: 6px 8px 14px; margin-bottom: 0; }
+.teacher-brand small { font-size: 12px; line-height: 1.3; }
+.teacher-brand strong { display: block; line-height: 1.2; }
+.teacher-ui .teacher-menu-label { padding: 8px 10px 6px; }
+.teacher-sidebar nav { gap: 2px; }
+.teacher-sidebar nav a { height: 36px; padding: 0 10px; font-weight: 500; color: var(--foreground); }
+.teacher-sidebar-footer { border-top: 1px solid var(--border); padding-top: 8px; }
+.teacher-identity { padding: 8px 0; }
+.teacher-identity strong { font-size: 13.5px; font-weight: 600; }
+.teacher-avatar { border-radius: 8px; }
+.teacher-topbar { padding-inline: 16px; }
+.teacher-ui .kpi-heading h2 { color: var(--muted-foreground); font-weight: 500; }
+.kpi-value { margin-top: 12px; }
+.teacher-ui .ui-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.jornada-alert { align-items: flex-start; padding: 14px 16px; }
+.jornada-alert > svg { margin-top: 2px; }
+.teacher-ui .jornada-alert strong { color: var(--foreground); }
+.teacher-ui .jornada-alert p { color: var(--foreground); font-weight: 400; }
+.jornada-windows { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 12px; margin-top: 20px; }
+.jornada-window { border: 1px solid var(--border); border-radius: 10px; padding: 14px; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.jornada-window > div { flex: 1; min-width: 130px; }
+.window-icon { width: 32px; height: 32px; }
+.teacher-ui .jornada-lock { border: 0; padding-top: 16px; }
+.no-jornada .jornada-window { opacity: 1; background: var(--background); }
+.history-presets { display: inline-flex; background: var(--neutral-bg); padding: 3px; gap: 2px; border-radius: 10px; }
+.history-presets button { padding: 6px 10px; }
+.history-presets button[aria-pressed=true] { background: var(--card); border-color: transparent; color: var(--foreground); }
+.summary-bar { gap: 3px; }
+.summary-bar > span { border-radius: 999px; }
+.teacher-ui .workspace-loading, .workspace-loading { min-height: 100dvh; padding: 80px 28px; display: grid; align-content: start; gap: 20px; }
+.teacher-ui .justification-body { padding: 12px; border: 1px dashed var(--border); border-radius: 10px; font-size: 13px; }
+@media(max-width: 1000px) { .history-date-fields > .button { flex-basis: 100%; } }
+@media(max-width: 900px) { .teacher-topbar { padding-top: env(safe-area-inset-top); height: calc(56px + env(safe-area-inset-top)); } }
+.teacher-ui .page-heading > .button { width: auto; flex-shrink: 0; }
+.teacher-ui .history-report .empty-state > svg { background: var(--neutral-bg); color: var(--muted-foreground); padding: 8px; width: 40px; height: 40px; border-radius: 10px; }
+.history-presets button { color: var(--neutral-fg); }
+.history-mobile-list dd small { display: block; font-size: 12px; }
+.teacher-ui .word-count.invalid { color: var(--danger-fg); }

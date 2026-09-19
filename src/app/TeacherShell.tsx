@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { CalendarDays, ClipboardCheck, LogOut, PanelLeft, RefreshCw } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router'
@@ -13,7 +13,7 @@ export function TeacherShell({ context, children, logout, loggingOut, logoutErro
   const main = useRef<HTMLElement>(null)
   const account = useRef<HTMLDivElement>(null)
   const location = useLocation()
-  useEffect(() => { main.current?.scrollTo(0, 0); account.current?.hidePopover() }, [location.pathname])
+  useLayoutEffect(() => { main.current?.scrollTo({ top: 0, behavior: 'instant' }); account.current?.hidePopover() }, [location.pathname])
   useEffect(() => { const timer = window.setInterval(() => setNow(new Date()), 1000); return () => clearInterval(timer) }, [])
   useEffect(() => {
     const complete = (event: Event) => { setRefreshing(false); setToast((event as CustomEvent<string>).detail) }
@@ -29,7 +29,7 @@ export function TeacherShell({ context, children, logout, loggingOut, logoutErro
     <a className="skip-link" href="#main">Ir al contenido</a>
     <aside className="teacher-sidebar" aria-label="Barra lateral">
       <div className="teacher-brand"><img src="/favicon.svg" width="36" height="36" alt="" /><div><strong>ECIC Clock-in</strong><small>Gestión de personal docente</small></div></div>
-      <p className="teacher-menu-label">Menú</p><nav aria-label="Navegación principal">{nav}</nav>
+      <p className="teacher-menu-label">Menú</p><nav aria-label="Navegación principal" onClick={() => setRefreshing(false)}>{nav}</nav>
       <div className="teacher-sidebar-footer">{identity}{logoutButton}{logoutError && <p role="alert">{logoutError}</p>}</div>
     </aside>
     <div className="teacher-frame">
@@ -43,7 +43,7 @@ export function TeacherShell({ context, children, logout, loggingOut, logoutErro
       </header>
       <main id="main" ref={main} tabIndex={-1} className="teacher-content"><div className="teacher-content-inner">{children}</div></main>
     </div>
-    <nav className="teacher-bottom-nav" aria-label="Navegación móvil">{nav}</nav>
+    <nav className="teacher-bottom-nav" aria-label="Navegación móvil" onClick={() => setRefreshing(false)}>{nav}</nav>
     <div role="status" aria-live="polite" aria-atomic="true">{toast && <div className="toast">{toast}</div>}</div>
   </div>
 }

@@ -1,3 +1,4 @@
+import { trapDialogFocus } from './dialogFocus'
 import { useEffect, useRef, useState } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { displayDate, shiftSchoolDate } from '../lib/historyDates'
@@ -22,7 +23,7 @@ function CalendarDialog({ label, value, onChange, close }: { label: string; valu
   const offset = (new Date(`${first}T12:00Z`).getUTCDay() + 6) % 7
   const monthLabel = new Intl.DateTimeFormat('es-EC', { timeZone: 'UTC', month: 'long', year: 'numeric' }).format(new Date(`${first}T12:00Z`))
   const moveMonth = (direction: number) => { const date = new Date(`${first}T12:00Z`); date.setUTCMonth(date.getUTCMonth() + direction); setMonth(date.toISOString().slice(0, 7)) }
-  return <dialog ref={dialog} className="date-dialog" aria-labelledby="calendar-title" onCancel={event => { event.preventDefault(); close() }}>
+  return <dialog ref={dialog} onKeyDown={trapDialogFocus} className="date-dialog" aria-labelledby="calendar-title" onCancel={event => { event.preventDefault(); close() }}>
     <div className="dialog-heading"><h2 id="calendar-title">{label}: selecciona una fecha</h2><button type="button" className="icon-button" aria-label="Cerrar calendario" onClick={close}><X size={18} /></button></div>
     <div className="calendar-month"><button type="button" className="icon-button" aria-label="Mes anterior" onClick={() => moveMonth(-1)}><ChevronLeft size={18} /></button><strong aria-live="polite">{monthLabel}</strong><button type="button" className="icon-button" aria-label="Mes siguiente" onClick={() => moveMonth(1)}><ChevronRight size={18} /></button></div>
     <div className="calendar-weekdays" aria-hidden="true">{['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map(day => <span key={day}>{day}</span>)}</div>

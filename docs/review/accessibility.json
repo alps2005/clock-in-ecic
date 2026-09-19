@@ -1,0 +1,26 @@
+[
+  {
+    "route": "jornada",
+    "theme": "light",
+    "score": 100,
+    "failures": []
+  },
+  {
+    "route": "historial",
+    "theme": "light",
+    "score": 100,
+    "failures": []
+  },
+  {
+    "route": "jornada",
+    "theme": "dark",
+    "score": 100,
+    "failures": []
+  },
+  {
+    "route": "historial",
+    "theme": "dark",
+    "score": 100,
+    "failures": []
+  }
+]

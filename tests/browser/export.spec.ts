@@ -6,8 +6,9 @@ for (const role of ['teacher', 'admin'] as const) {
   test(`${role} header and weekly export preview support CSV, Excel and keyboard dismissal`, async ({ page }, testInfo) => {
     await mockBackend(page, { role })
     await signIn(page)
-    const header = page.locator('.ecic-topbar')
-    await expect(header.locator('time')).toBeVisible()
+    if (role === 'teacher') await page.goto('/historial')
+    const header = page.locator(role === 'teacher' ? '.teacher-history .page-heading' : '.ecic-topbar')
+    if (role === 'admin') await expect(header.locator('time')).toBeVisible()
     await expect(header).not.toContainText('ADMINISTRACIÓN')
     await expect(header).not.toContainText('ECIC • Ecuador')
     await expect(header.locator('.ecic-live-dot')).toHaveCount(0)
@@ -64,11 +65,13 @@ test('admin export fetches all pages using only the current school week', async 
 test('export errors can be retried and empty results disable downloads', async ({ page }) => {
   await mockBackend(page)
   await signIn(page)
+  await page.goto('/historial')
+  await expect(page.getByRole('heading', { name: 'Mi historial', exact: true })).toBeVisible()
   let fail = true
   await page.route('**/rest/v1/rpc/attendance_report', route => fail
     ? route.fulfill({ status: 400, json: { message: 'OFFLINE' } })
     : route.fulfill({ json: { rows: [], page: 0, page_size: 25, totals: { expected: 0 } } }))
-  await page.locator('.ecic-topbar').getByRole('button', { name: 'Exportar', exact: true }).click()
+  await page.getByRole('button', { name: 'Exportar', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByRole('alert')).toBeVisible()
   await expect(dialog.getByRole('button', { name: 'Descargar CSV' })).toBeDisabled()

@@ -14,7 +14,16 @@ for (const role of ['teacher', 'admin'] as const) {
     await signIn(page)
     await expect(page).toHaveURL(role === 'teacher' ? /\/jornada$/ : /\/admin$/)
     if (role === 'teacher') await page.goto('/historial')
-    const cardSelector = role === 'teacher' ? '.stat' : '.ecic-stat-card'
+    if (role === 'teacher') {
+      await expect(page.locator('.history-summary > section')).toHaveCount(3)
+      for (const [title, counts] of [['Entradas', ['0','3','7']], ['Salidas', ['2','0','9']]] as const) {
+        await expect(page.getByRole('region', { name: title, exact: true }).locator('strong')).toHaveText([...counts])
+      }
+      await expect(page.getByRole('region', { name: 'Faltas', exact: true }).locator('strong')).toHaveText('23')
+      await expect(page.getByText('Sin asistencia', { exact: true }).filter({ visible: true })).toHaveCount(1)
+      await expect(page.getByText('Sin entrada', { exact: true }).filter({ visible: true })).toHaveCount(1)
+    } else {
+    const cardSelector = '.ecic-stat-card'
     await expect(page.locator(cardSelector)).toHaveCount(7)
     for (const group of [
       { title: 'Entradas', counts: [0, 3, 7], descriptions: ['Entradas realizadas a tiempo', 'Entradas realizadas con atraso', 'Registros sin entrada marcada'] },
@@ -35,6 +44,7 @@ for (const role of ['teacher', 'admin'] as const) {
     await expect(absence).toContainText('Registros no realizados')
     await expect(page.getByRole('cell', { name: /Sin asistencia/ })).toHaveCount(1)
     await expect(page.getByRole('cell', { name: /Sin entrada/ })).toHaveCount(1)
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
     await page.screenshot({ path: info.outputPath(`${role}-statistics.png`), fullPage: true })
   })

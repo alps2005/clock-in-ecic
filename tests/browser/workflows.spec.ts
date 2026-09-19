@@ -15,15 +15,16 @@ test('teacher session restores, guards admin routes and clears private UI at log
   await page.getByRole('link', { name: 'Mi historial' }).click()
   await expect(page.getByRole('heading', { name: 'Mi historial', exact: true })).toBeVisible()
   await expect(page.getByText('Tus jornadas, en un solo lugar.', { exact: true })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Actualizar Historial', exact: true })).toBeVisible()
-  await expect(page.locator('.personal-history .eyebrow')).toHaveCount(0)
-  await expect(page.locator('.attendance-stats')).toBeVisible()
-  const report = (await page.locator('.report-card').boundingBox())!
-  const stats = (await page.locator('.attendance-stats').boundingBox())!
-  expect(stats.y).toBeGreaterThan(report.y + report.height)
+  await expect(page.getByRole('button', { name: 'Actualizar datos', exact: true })).toBeVisible()
+  await expect(page.locator('.teacher-history .eyebrow')).toHaveCount(0)
+  await expect(page.locator('.history-summary')).toBeVisible()
+  const report = (await page.locator('.history-report').boundingBox())!
+  const stats = (await page.locator('.history-summary').boundingBox())!
+  expect(stats.y + stats.height).toBeLessThan(report.y)
 
-  await expect(page.getByText('Salida no registrada', { exact: true })).toBeVisible()
+  await expect(page.getByText('Salida no registrada', { exact: true }).filter({ visible: true })).toBeVisible()
   await openNavigation(page)
+  if (await page.getByRole('button', { name: 'Abrir menú de cuenta' }).isVisible()) await page.getByRole('button', { name: 'Abrir menú de cuenta' }).click()
   await page.getByRole('button', { name: 'Cerrar sesión' }).click()
   await expect(page.getByRole('heading', { name: 'Asistencia Docente ECIC' })).toBeVisible()
   await expect(page.getByText('Ana Torres')).toHaveCount(0)
@@ -34,8 +35,8 @@ test('late justification enforces 250 words and retries the same request after a
   const backend = await mockBackend(page, { time: '2026-09-14T11:40:00.001Z', uncertain: true })
   await signIn(page)
   await expect(page.getByRole('button', { name: /Escanear/ })).toHaveCount(0)
-  await expect(page.getByText('06:00 — 06:40', { exact: true })).toBeVisible()
-  await expect(page.getByText('12:40 — 13:30', { exact: true })).toBeVisible()
+  await expect(page.getByText('06:00–06:40', { exact: true })).toBeVisible()
+  await expect(page.getByText('12:40–13:30', { exact: true })).toBeVisible()
   await expect(page.getByText('El escaneo de entrada terminó a las 06:40.', { exact: false })).toBeVisible()
   await page.getByLabel('Justificación', { exact: true }).fill('palabra '.repeat(251))
   await expect(page.getByRole('button', { name: 'Registrar entrada con justificación' })).toBeDisabled()
@@ -87,7 +88,7 @@ test('admins see reports and missed-exit notices, filter results and cannot ente
 test('missing exit locks the scanner and reports the admin notice', async ({ page }) => {
   await mockBackend(page, { time: '2026-09-14T18:31:00Z', events: [{ id: 'entry', teacher_id: 'teacher', kind: 'entry', occurred_at: '2026-09-14T11:30:00Z', school_date: '2026-09-14', sequence_no: 1, justification: null, request_id: 'prior' }] })
   await signIn(page)
-  await expect(page.getByRole('heading', { name: 'Salida no registrada' })).toBeVisible()
+  await expect(page.getByText('La ventana de salida ya cerró', { exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: /Escanear/ })).toHaveCount(0)
   await expect(page.getByText('La administración tiene una notificación', { exact: false })).toBeVisible()
 })
@@ -213,5 +214,5 @@ test('exit scanner opens at 12:40 Ecuador time', async ({ page }) => {
   await mockBackend(page, { time: '2026-09-14T17:40:00Z', events: [{ id: 'entry', teacher_id: 'teacher', kind: 'entry', occurred_at: '2026-09-14T11:30:00Z', school_date: '2026-09-14', sequence_no: 1, justification: null, request_id: 'prior' }] })
   await signIn(page)
   await expect(page.getByRole('button', { name: 'Escanear salida' })).toBeEnabled()
-  await expect(page.getByText('12:40 — 13:30', { exact: true })).toBeVisible()
+  await expect(page.getByText('12:40–13:30', { exact: true })).toBeVisible()
 })
