@@ -1,0 +1,54 @@
+/* Teacher workspace tokens are scoped to preserve the administration interface. */
+.teacher-ui {
+  --sidebar: #EEF3F5; --background: #FAFBFC; --card: #FFFFFF; --border: #E1E7EA;
+  --foreground: #2B3138; --muted-foreground: #65707A; --primary: #3B444C; --primary-foreground: #FFFFFF;
+  --accent: #DCEBF1; --accent-border: #C3DFE9; --accent-foreground: #276579; --ring: #7FB6C8; --brand: #4E5A63;
+  --success-bg: #E3F2EA; --success-fg: #1F6A48; --success-dot: #3E9A72;
+  --warning-bg: #FBF0DC; --warning-fg: #83540A; --warning-dot: #D89A2B;
+  --danger-bg: #FBE8E6; --danger-fg: #A1352C; --danger-dot: #D0564B;
+  --neutral-bg: #EDF1F3; --neutral-fg: #4A535B;
+  --brand-charcoal: var(--foreground); --text-muted: var(--muted-foreground); --surface: var(--card);
+  --surface-page: var(--background); --surface-muted: var(--sidebar); --surface-sky: var(--accent); --border-control: var(--border);
+  color: var(--foreground); background: var(--sidebar); font: 14px/1.5 'Geist', Inter, system-ui, sans-serif; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  .teacher-ui { --sidebar: #14181B; --background: #181D21; --card: #1E2429; --border: #2A3238;
+    --foreground: #E8EDF0; --muted-foreground: #98A5AF; --accent: #1F3640; --accent-border: #2E4C58;
+    --accent-foreground: #8CCADB; --ring: #6FA9BC; --primary: #E6EBEE; --primary-foreground: #1B2024;
+    --success-bg: #17332A; --success-fg: #8AD1AE; --success-dot: #4FB48A;
+    --warning-bg: #3A2E14; --warning-fg: #F0C674; --warning-dot: #E0AE4E;
+    --danger-bg: #3D1F1D; --danger-fg: #F2A29B; --danger-dot: #E27A70;
+    --neutral-bg: #262E34; --neutral-fg: #B4BFC7; color-scheme: dark;
+  }
+}
+
+.teacher-ui :focus-visible { outline: 2px solid var(--accent-foreground); outline-offset: 2px; }
+.teacher-ui h1 { font-size: 28px; font-weight: 600; letter-spacing: -.025em; line-height: 1.25; margin: 0 0 6px; }
+.teacher-ui h2 { font-size: 15px; font-weight: 600; line-height: 1.5; margin: 0; }
+.teacher-ui h3 { font-size: 14px; font-weight: 600; }
+.teacher-ui p { margin: 0; }
+.teacher-ui small, .teacher-ui .muted { color: var(--muted-foreground); }
+.teacher-ui button, .teacher-ui a, .teacher-ui input { -webkit-tap-highlight-color: transparent; }
+.teacher-ui .button { min-height: 40px; padding: 8px 14px; border-radius: 8px; gap: 8px; font-weight: 500; }
+.teacher-ui .primary, .teacher-ui .primary:hover:enabled { background: var(--primary); color: var(--primary-foreground); }
+.teacher-ui .secondary { background: var(--card); border-color: var(--border); color: var(--foreground); }
+.teacher-ui .icon-button { display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0; background: transparent; border: 0; border-radius: 8px; cursor: pointer; flex-shrink: 0; }
+.teacher-ui .icon-button:hover, .teacher-ui .secondary:hover:enabled { background: var(--accent); }
+.teacher-ui .page-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0; }
+.teacher-ui .page-heading p { color: var(--muted-foreground); font-size: 13px; }
+.teacher-ui .ui-card { padding: 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: 0 1px 2px rgb(16 24 32 / .05); min-width: 0; }
+.teacher-ui .ui-badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 9px; font-size: 12px; font-weight: 500; white-space: nowrap; background: var(--neutral-bg); color: var(--neutral-fg); }
+.teacher-ui .tone-success { background: var(--success-bg); color: var(--success-fg); }
+.teacher-ui .tone-warning { background: var(--warning-bg); color: var(--warning-fg); }
+.teacher-ui .tone-danger { background: var(--danger-bg); color: var(--danger-fg); }
+.teacher-ui .tone-accent { background: var(--accent); color: var(--accent-foreground); }
+.teacher-ui time, .teacher-ui .numeric { font-variant-numeric: tabular-nums; }
+.teacher-ui .feedback { margin: 0; }
+.teacher-ui .feedback.error { background: var(--danger-bg); color: var(--danger-fg); border-color: var(--danger-fg); }
+.teacher-ui .feedback.notice { background: var(--warning-bg); color: var(--warning-fg); }
+.teacher-ui .feedback.success { background: var(--success-bg); color: var(--success-fg); }
+.teacher-ui .skeleton { height: 130px; background: var(--neutral-bg); border: 1px solid var(--border); border-radius: 12px; }
+.teacher-ui .skeleton.schedule { height: 270px; }
+.teacher-ui .toast { position: fixed; bottom: 24px; right: 24px; z-index: 100; padding: 14px 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--foreground); max-width: calc(100% - 32px); }
+.teacher-ui .refreshing { animation: spin .6s linear 1; }
+@media (prefers-reduced-motion: reduce) { .teacher-ui *, .teacher-ui *::before, .teacher-ui *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

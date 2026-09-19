@@ -1,3 +1,4 @@
+import '../teacher.css'
 import { NavLink, Navigate, Route, Routes } from 'react-router'
 import { useEffect, useRef, useState } from 'react'
 import {

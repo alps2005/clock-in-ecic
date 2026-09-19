@@ -32,3 +32,10 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); opacity: 1
 a { color: inherit; }
 :focus-visible { outline: 3px solid var(--brand-charcoal); outline-offset: 3px; }
 ::selection { background: var(--surface-sky-strong); color: var(--brand-charcoal); }
+
+@theme inline {
+  --color-background: var(--background); --color-foreground: var(--foreground); --color-card: var(--card);
+  --color-primary: var(--primary); --color-primary-foreground: var(--primary-foreground);
+  --color-muted-foreground: var(--muted-foreground); --color-accent: var(--accent); --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border); --color-ring: var(--ring); --color-sidebar: var(--sidebar);
+}
