@@ -1,4 +1,5 @@
 import '../teacher.css'
+import { TeacherShell } from './TeacherShell'
 import { NavLink, Navigate, Route, Routes } from 'react-router'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -64,6 +65,10 @@ export function Workspace({ userId }: { userId: string }) {
     minute: '2-digit',
     hour12: true,
   }).format(now)
+
+  if (!admin) return <TeacherShell context={data} logout={() => void logout()} loggingOut={loggingOut} logoutError={logoutError}>
+    <Routes><Route path="/jornada" element={<Attendance context={data} refresh={context.refresh} />} /><Route path="/historial" element={<History context={data} />} /><Route path="*" element={<Navigate to="/jornada" replace />} /></Routes>
+  </TeacherShell>
 
   return <div className="ecic-shell">
     <a className="skip-link" href="#main">Ir al contenido</a>

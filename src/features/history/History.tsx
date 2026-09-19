@@ -1,3 +1,4 @@
+import { usePageRefresh } from '../../app/usePageRefresh'
 import { useCallback, useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { CalendarDays, ClipboardList, RefreshCw, Search, X } from 'lucide-react'
@@ -34,6 +35,7 @@ export function History({ admin = false, context, teacherId }: { admin?: boolean
   const [statusFilter, setStatusFilter] = useState('Todos los estados')
   const load = useCallback(() => teacherId ? getTeacherReport(teacherId, filter.from, filter.to, page) : getReport(filter.from, filter.to, page, filter.search), [filter, page, teacherId])
   const result = useRemote(load, 30_000)
+  usePageRefresh(result.refresh, result.data, result.error)
 
   function submit(event: FormEvent) {
     event.preventDefault()

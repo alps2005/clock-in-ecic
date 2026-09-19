@@ -1,3 +1,4 @@
+import { usePageRefresh } from '../../app/usePageRefresh'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { ArrowDownLeft, ArrowUpRight, ScanLine } from 'lucide-react'
 import type { AppContext, AttendanceRequest } from '../../types/app'
@@ -13,6 +14,7 @@ function recoverPending(owner: string): AttendanceRequest | null {
   } catch { return null }
 }
 export function Attendance({ context, refresh }: { context: AppContext; refresh: () => void }) {
+  usePageRefresh(refresh, context, null)
   const [clock, setClock] = useState({ source: context.server_time, time: Date.parse(context.server_time) })
   const now = new Date(clock.source === context.server_time ? clock.time : Date.parse(context.server_time))
   useEffect(() => {
