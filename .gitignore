@@ -18,6 +18,7 @@ playwright-report/
 test-results/
 supabase/.temp/
 supabase/.branches/
+/docs/
 
 # Editor directories and files
 .vscode/*
