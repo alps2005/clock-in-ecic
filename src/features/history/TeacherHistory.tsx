@@ -1,3 +1,5 @@
+import { DatePicker } from '../../components/DatePicker'
+import { historyPresets, rangeError } from '../../lib/historyDates'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ClipboardList, Download, X } from 'lucide-react'
 import type { AppContext, Report, ReportRow } from '../../types/app'
@@ -25,19 +27,21 @@ export function TeacherHistory({ context }: { context: AppContext }) {
   const [page, setPage] = useState(0)
   const [exportOpen, setExportOpen] = useState(false)
   const [selected, setSelected] = useState<ReportRow | null>(null)
-  const [filterError, setFilterError] = useState('')
+  const filterError = rangeError(from, to)
+  const presets = historyPresets(context.school_date)
   const load = useCallback(() => getReport(filter.from, filter.to, page, ''), [filter, page])
   const result = useRemote(load, 30_000)
   usePageRefresh(result.refresh, result.data, result.error)
   const data = result.data
-  function thisWeek() { const range = currentSchoolWeek(context.school_date); setFrom(range.from); setTo(range.to); setFilter(range); setPage(0); setFilterError('') }
+  function thisWeek() { const range = currentSchoolWeek(context.school_date); setFrom(range.from); setTo(range.to); setFilter(range); setPage(0) }
   const openJustification = (row: ReportRow) => row.justification ? <button className="history-justification" onClick={() => setSelected(row)}>Ver justificación</button> : <span className="muted">—</span>
   return <div className="teacher-history">
     <div className="page-heading"><div><h1>Mi historial</h1><p>Tus jornadas, en un solo lugar.</p></div><button className="button secondary" onClick={() => setExportOpen(true)}><Download size={16} aria-hidden="true" />Exportar</button></div>
     {data ? <HistorySummary totals={data.totals} /> : <div className="history-summary" aria-label="Cargando estadísticas" aria-busy={result.loading}>{[1,2,3].map(i => <div key={i} className="skeleton" />)}</div>}
-    <form className="ui-card history-filters" onSubmit={event => { event.preventDefault(); const days = (Date.parse(to) - Date.parse(from)) / 86400000; if (!Number.isFinite(days) || days < 0 || days > 30) { setFilterError('Selecciona un rango válido de hasta 31 días.'); return } setFilterError(''); setFilter({ from, to }); setPage(0) }}>
-      <div className="history-date-fields"><div><label htmlFor="history-from">Desde</label><input id="history-from" type="date" required value={from} onChange={e => setFrom(e.target.value)} /></div><div><label htmlFor="history-to">Hasta</label><input id="history-to" type="date" required value={to} onChange={e => setTo(e.target.value)} /></div><button className="button primary">Consultar</button></div>
-      {filterError && <p role="alert" className="filter-error">{filterError}</p>}
+    <form className="ui-card history-filters" onSubmit={event => { event.preventDefault(); if (filterError) return; setFilter({ from, to }); setPage(0) }}>
+      <div className="history-presets" role="group" aria-label="Rangos de fechas">{presets.map(range => <button type="button" key={range.label} aria-pressed={from === range.from && to === range.to} onClick={() => { setFrom(range.from); setTo(range.to); setFilter({ from: range.from, to: range.to }); setPage(0) }}>{range.label}</button>)}</div>
+      <div className="history-date-fields"><DatePicker id="history-from" label="Desde" value={from} onChange={setFrom} invalid={!!filterError} /><DatePicker id="history-to" label="Hasta" value={to} onChange={setTo} invalid={!!filterError} /><button className="button primary" disabled={!!filterError}>Consultar</button></div>
+      {filterError && <p id="history-range-error" role="alert" className="filter-error">{filterError}</p>}
     </form>
     {result.error ? <Failure error={result.error} retry={result.refresh} /> : <section className="ui-card history-report" aria-busy={result.loading}>
       <div className="history-report-heading"><div><h2>Detalle de asistencia</h2><p>{dateLabel(filter.from)} – {dateLabel(filter.to)}</p></div>{data && <span>Actualizado a las {timeLabel(data.as_of)}</span>}</div>

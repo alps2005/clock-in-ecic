@@ -179,3 +179,19 @@
   .history-report-heading, .history-pager { flex-wrap: wrap; }.history-pager > div { margin-left: auto; }
   .teacher-ui .history-dialog { position: fixed; inset: auto 0 0; width: 100%; max-width: none; margin: 0; border-radius: 14px 14px 0 0; padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 }
+.history-presets { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 20px; }
+.history-presets button { min-height: 36px; padding: 6px 12px; font-size: 13px; border-radius: 8px; border: 1px solid transparent; cursor: pointer; background: transparent; color: var(--muted-foreground); }
+.history-presets button[aria-pressed=true] { background: var(--accent); border-color: var(--accent-border); color: var(--accent-foreground); }
+.date-trigger { display: flex; justify-content: space-between; align-items: center; gap: 12px; height: 40px; width: 100%; background: var(--card); color: var(--foreground); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.date-trigger[aria-invalid=true] { border-color: var(--danger-fg); }
+.date-trigger svg { color: var(--muted-foreground); }
+.teacher-ui .date-dialog { margin: auto; padding: 16px; width: min(340px, calc(100% - 32px)); border-radius: 12px; border: 1px solid var(--border); color: var(--foreground); background: var(--card); }
+.date-dialog::backdrop { background: rgb(0 0 0 / .3); }
+.calendar-month { display: flex; align-items: center; justify-content: space-between; margin: 12px 0; }
+.calendar-month strong { font-weight: 500; }
+.calendar-weekdays, .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+.calendar-weekdays { font-size: 12px; color: var(--muted-foreground); margin-bottom: 8px; }
+.calendar-days button { min-width: 0; height: 38px; border: 0; border-radius: 8px; cursor: pointer; background: transparent; font-variant-numeric: tabular-nums; }
+.calendar-days button:hover { background: var(--accent); }
+.calendar-days button.selected { background: var(--primary); color: var(--primary-foreground); }
+.calendar-days button.other-month { color: var(--muted-foreground); }
