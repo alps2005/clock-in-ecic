@@ -38,9 +38,11 @@
 .loading-state strong { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
 .access-card .loading-state { padding: 8px 0; }
 .loading-spinner { animation: spin 1s linear infinite; }
-.loading-progress { width: 160px; height: 4px; overflow: hidden; border-radius: 4px; background: var(--neutral-bg); margin-top: 24px; }
-.loading-progress span { display: block; height: 100%; width: 40%; border-radius: inherit; background: var(--ring); animation: loading-progress 1.6s ease-in-out infinite alternate; }
-@keyframes loading-progress { from { transform: translateX(0); } to { transform: translateX(150%); } }
+.loading-meter { display: flex; align-items: center; gap: 12px; width: min(260px, 100%); margin-top: 24px; }
+.loading-progress { flex: 1; height: 6px; overflow: hidden; border-radius: 4px; background: var(--neutral-bg); }
+.loading-progress span { display: block; height: 100%; border-radius: inherit; background: var(--ring); transition: width .12s linear; }
+.loading-percentage { min-width: 4ch; text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted-foreground); }
+@media (prefers-reduced-motion: reduce) { .loading-progress span { transition: none; } }
 @media (max-width: 600px) {
   .public-shell { padding: 0; }
   .public-frame { min-height: 100dvh; border: 0; border-radius: 0; }

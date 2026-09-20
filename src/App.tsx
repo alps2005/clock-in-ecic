@@ -24,5 +24,5 @@ export default function App() {
     })
     return () => data.subscription.unsubscribe()
   }, [])
-  return <BrowserRouter>{loading ? <Loading fullPage /> : session ? <Suspense fallback={<Loading fullPage />}><Workspace key={session.user.id} userId={session.user.id} /></Suspense> : <Login />}</BrowserRouter>
+  return <BrowserRouter>{loading ? <Loading fullPage description="Verificando tu sesión." /> : session ? <Suspense fallback={<Loading fullPage description="Preparando tu espacio." />}><Workspace key={session.user.id} userId={session.user.id} /></Suspense> : <Login />}</BrowserRouter>
 }

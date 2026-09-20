@@ -22,7 +22,7 @@ function SchoolClock() {
 
 export function PublicLayout({ children }: { children: ReactNode }) {
   return <div className="teacher-ui public-shell">
-    <a className="skip-link" href="#main">Ir al contenido</a>
+    <a className="skip-link" href="#public-main">Ir al contenido</a>
     <div className="public-frame">
       <header className="public-topbar">
         <a className="public-brand" href="/" aria-label="ECIC Clock-in, inicio">
@@ -31,7 +31,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
         </a>
         <SchoolClock />
       </header>
-      <main id="main" tabIndex={-1} className="public-content">{children}</main>
+      <main id="public-main" tabIndex={-1} className="public-content">{children}</main>
       <SiteFooter />
     </div>
   </div>

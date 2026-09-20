@@ -55,7 +55,9 @@ for (const role of ['teacher', 'admin'] as const) {
     await enterCredentials(page)
     await expect(page.getByRole('heading', { name: 'Cargando tu espacio…' })).toBeVisible()
     await expect(page.locator('.public-frame')).toBeVisible()
-    await expect(page.locator('.loading-spinner')).toHaveCSS('animation-name', 'none')
+    await expect(page.locator('.loading-state .loading-spinner')).toHaveCount(0)
+    await expect(page.getByRole('progressbar', { name: 'Progreso de carga' })).toHaveAttribute('aria-valuenow', '0')
+    await expect(page.locator('.loading-progress > span')).toHaveCSS('animation-name', 'none')
     await page.screenshot({ path: info.outputPath(`${role}-loading.png`), fullPage: true })
     mode = 'error'; release()
     await expect(page.getByRole('heading', { name: 'No pudimos cargar tu espacio' })).toBeVisible()
@@ -106,4 +108,59 @@ test('login, loading and error fit narrow and desktop screens in both themes', a
       }
     }
   }
+})
+
+for (const role of ['teacher', 'admin'] as const) {
+  test(`${role} progress fills continuously while requests are pending`, async ({ page }, info) => {
+    await mockBackend(page, { role })
+    await page.goto('/')
+    await enterCredentials(page)
+    await expect(page.getByRole('heading', { name: role === 'teacher' ? 'Hola, Ana' : 'Asistencia docente', exact: true })).toBeVisible()
+
+    let releaseCode!: () => void
+    let releaseAccount!: () => void
+    let releaseReport!: () => void
+    const code = new Promise<void>(resolve => { releaseCode = resolve })
+    const account = new Promise<void>(resolve => { releaseAccount = resolve })
+    const report = new Promise<void>(resolve => { releaseReport = resolve })
+    await page.route('**/assets/Workspace-*.js', async route => { await code; return route.continue() })
+    await page.route('**/rest/v1/rpc/app_context', async route => { await account; return route.fallback() })
+    await page.route('**/rest/v1/rpc/attendance_report', async route => { await report; return route.fallback() })
+    await page.goto(role === 'teacher' ? '/historial' : '/admin', { waitUntil: 'domcontentloaded' })
+    const progress = page.getByRole('progressbar', { name: 'Progreso de carga' })
+    await expect(progress).toBeVisible()
+    await expect(page.locator('.loading-state svg')).toHaveCount(0)
+    const firstValue = Number(await progress.getAttribute('aria-valuenow'))
+    expect(firstValue).toBeLessThan(100)
+    releaseCode()
+    releaseAccount()
+    await page.waitForTimeout(250)
+    const waitingValue = Number(await progress.getAttribute('aria-valuenow'))
+    expect(waitingValue).toBeGreaterThanOrEqual(firstValue)
+    expect(waitingValue).toBeLessThan(100)
+    const counterValue = Number((await page.locator('.loading-percentage').textContent())?.replace('%', ''))
+    expect(Math.abs(counterValue - waitingValue)).toBeLessThanOrEqual(1)
+    await expect(page.getByRole('heading', { name: 'Detalle de asistencia', exact: true })).toBeHidden()
+    await page.screenshot({ path: info.outputPath(`${role}-real-progress.png`), fullPage: true })
+    releaseReport()
+    await expect(progress).toHaveAttribute('aria-valuenow', '100')
+    await expect(page.getByRole('heading', { name: 'Detalle de asistencia', exact: true })).toBeVisible()
+    await expect(progress).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Ver justificación', exact: true })).toBeVisible()
+  })
+}
+
+test('an initial panel request failure reveals retry instead of leaving progress stuck', async ({ page }) => {
+  await mockBackend(page, { role: 'admin' })
+  let fail = true
+  await page.route('**/rest/v1/rpc/attendance_report', route => fail
+    ? route.fulfill({ status: 503, json: { message: 'OFFLINE' } })
+    : route.fallback())
+  await page.goto('/')
+  await enterCredentials(page)
+  await expect(page.getByRole('alert')).toContainText('No pudimos conectar')
+  await expect(page.getByRole('progressbar')).toHaveCount(0)
+  fail = false
+  await page.getByRole('button', { name: 'Volver a intentar' }).click()
+  await expect(page.getByRole('button', { name: 'Ver justificación', exact: true })).toBeVisible()
 })

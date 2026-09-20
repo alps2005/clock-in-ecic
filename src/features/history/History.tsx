@@ -1,3 +1,4 @@
+import { usePanelReady } from '../../app/usePanelReady'
 import { trapDialogFocus } from '../../components/dialogFocus'
 import { DatePicker } from '../../components/DatePicker'
 import { historyPresets, rangeError } from '../../lib/historyDates'
@@ -34,6 +35,7 @@ export function History({ context, admin = false, teacherId }: { context: AppCon
   const presets = admin ? allPresets : historyPresets(context.school_date)
   const load = useCallback(() => teacherId ? getTeacherReport(teacherId, filter.from, filter.to, page) : getReport(filter.from, filter.to, page, appliedSearch), [filter, page, teacherId, appliedSearch])
   const result = useRemote(load, 30_000)
+  usePanelReady(!result.loading)
   usePageRefresh(result.refresh, result.data, result.error)
   const data = result.data
   function thisWeek() { apply(currentSchoolWeek(context.school_date)) }

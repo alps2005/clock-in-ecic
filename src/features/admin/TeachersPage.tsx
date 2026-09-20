@@ -1,3 +1,4 @@
+import { usePanelReady } from '../../app/usePanelReady'
 import { useCallback, useState } from 'react'
 import { BookOpen, LockKeyhole, Pencil } from 'lucide-react'
 import { Link } from 'react-router'
@@ -18,6 +19,7 @@ export function TeachersPage({ schoolDate }: { schoolDate: string }) {
   const [message, setMessage] = useState('')
   const load = useCallback(() => getTeachers(page, filter), [page, filter])
   const result = useRemote(load, 30_000)
+  usePanelReady(!result.loading)
   usePageRefresh(result.refresh, result.data, result.error)
   function open(action: Editor['action'], teacher?: TeacherAccount) { setMessage(''); setEditor({ action, teacher }) }
   return <>

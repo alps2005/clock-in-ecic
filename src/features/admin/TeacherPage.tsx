@@ -1,3 +1,4 @@
+import { usePanelReady } from '../../app/usePanelReady'
 import { useCallback, useState } from 'react'
 import { ArrowLeft, BookOpen, Pencil } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router'
@@ -18,6 +19,7 @@ export function TeacherPage({ context, editing = false }: { context: AppContext;
 function TeacherDetails({ teacherId, context, editing }: { teacherId: string; context: AppContext; editing: boolean }) {
   const load = useCallback(() => getTeacher(teacherId), [teacherId])
   const result = useRemote(load)
+  usePanelReady(!result.loading && !result.data)
   usePageRefresh(result.refresh, result.data, result.error, !result.data)
   const navigate = useNavigate()
   const [action, setAction] = useState<Editor['action'] | null>(editing ? 'update' : null)

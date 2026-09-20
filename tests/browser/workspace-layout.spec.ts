@@ -8,6 +8,7 @@ test('desktop sidebar and frame fill the viewport on short and long pages', asyn
   for (const route of ['/jornada', '/historial']) {
     await page.goto(route)
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    await expect(page.locator('.teacher-frame')).toBeVisible()
     const frame = (await page.locator('.teacher-frame').boundingBox())!
     const sidebar = (await page.locator('.teacher-sidebar').boundingBox())!
     expect(frame.y).toBe(8)
