@@ -31,20 +31,20 @@ test('admin counts wait for the profile and failures stop polling without breaki
     return route.fulfill({ status: 400, json: { message: 'TEST_FAILURE' } })
   })
   await signIn(page)
-  await expect(page.getByRole('heading', { name: 'Asistencia docente.' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Asistencia docente' })).toBeVisible()
   await expect.poll(() => requests).toBe(1)
   await page.clock.install()
   await page.clock.fastForward(61000)
   await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')))
   expect(requests).toBe(1)
   expect(warnings).toHaveLength(1)
-  await expect(page.locator('.ecic-nav-badge')).toHaveCount(0)
+  await expect(page.locator('.nav-count')).toHaveCount(0)
 })
 
 test('admin counts remain populated for administrators', async ({ page }) => {
   await mockBackend(page, { role: 'admin' })
   await signIn(page)
-  await expect(page.locator('.ecic-nav-badge')).toHaveText(['29', '3', '1'])
+  await expect(page.locator('.nav-count').filter({ visible: true })).toHaveText(['29', '1'])
 })
 
 test('Spanish dates, presets, validation and justification focus work', async ({ page }) => {
@@ -92,7 +92,7 @@ test('both pages fit all required widths in both themes without runtime errors',
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
         expect(await page.locator('.teacher-content').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true)
         await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
-        if (width === 402 || width === 1440) await page.screenshot({ path: `docs/review/${route}-${width}-${theme}.png` })
+        if (width === 402 || width === 1440) await page.screenshot({ path: info.outputPath(`${route}-${width}-${theme}.png`) })
       }
     }
   }

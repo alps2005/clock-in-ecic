@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test'
 import type { AppContext, AttendanceEvent, Report, ReportRow } from '../../src/types/app.ts'
 
-export async function mockBackend(page: Page, options: { role?: 'teacher' | 'admin'; time?: string; uncertain?: boolean; events?: AttendanceEvent[] } = {}) {
+export async function mockBackend(page: Page, options: { role?: 'teacher' | 'admin'; schoolDate?: string; time?: string; uncertain?: boolean; events?: AttendanceEvent[] } = {}) {
   const role = options.role ?? 'teacher'
   const userId = role === 'teacher' ? '10000000-0000-0000-0000-000000000001' : '10000000-0000-0000-0000-000000000003'
   const profileId = role === 'teacher' ? '20000000-0000-0000-0000-000000000001' : '20000000-0000-0000-0000-000000000003'
@@ -9,6 +9,7 @@ export async function mockBackend(page: Page, options: { role?: 'teacher' | 'adm
   const requests: Record<string, unknown>[] = []
   let lost = false
   let inactive = false
+  let schoolDate = options.schoolDate ?? '2026-09-14'
   const serverTime = options.time ?? '2026-09-14T11:30:00Z'
   const user = { id: userId, aud: 'authenticated', role: 'authenticated', email: '0000000001@login.clock-in.invalid', app_metadata: { ecic_session_version: 1 }, user_metadata: {}, created_at: '2026-09-01T00:00:00Z' }
   const encoded = (value: unknown) => Buffer.from(JSON.stringify(value)).toString('base64url')
@@ -21,7 +22,7 @@ export async function mockBackend(page: Page, options: { role?: 'teacher' | 'adm
     if (url.pathname === '/auth/v1/user') return json(user)
     if (inactive) return json({ message: 'ACCESS_DENIED', code: 'P0001' }, 400)
     if (url.pathname.endsWith('/app_context')) {
-      const context: AppContext = { profile: { id: profileId, auth_user_id: userId, cedula: '0000000001', full_name: role === 'teacher' ? 'Ana Torres' : 'Administración ECIC', role, active: true }, server_time: serverTime, school_date: '2026-09-14', working_day: true, policy: { id: 'policy', timezone: 'America/Guayaquil', weekdays: [1,2,3,4,5], entry_opens: '06:00:00', entry_closes: '06:40:00', exit_opens: '12:40:00', exit_closes: '13:30:00' }, events }
+      const context: AppContext = { profile: { id: profileId, auth_user_id: userId, cedula: '0000000001', full_name: role === 'teacher' ? 'Ana Torres' : 'Administración ECIC', role, active: true }, server_time: serverTime, school_date: schoolDate, working_day: true, policy: { id: 'policy', timezone: 'America/Guayaquil', weekdays: [1,2,3,4,5], entry_opens: '06:00:00', entry_closes: '06:40:00', exit_opens: '12:40:00', exit_closes: '13:30:00' }, events }
       return json(context)
     }
     if (url.pathname.endsWith('/record_attendance')) {
@@ -45,7 +46,7 @@ export async function mockBackend(page: Page, options: { role?: 'teacher' | 'adm
     if (url.pathname.endsWith('/admin_sidebar_counts')) return role === 'admin' ? json({ teachers: 29, justifications: 3, notifications: 1 }) : json({ message: 'ACCESS_DENIED', code: 'P0001', hint: null, details: null }, 400)
     return json({ message: 'Unexpected test request' }, 500)
   })
-  return { events, requests, disable: () => { inactive = true } }
+  return { events, requests, setSchoolDate: (date: string) => { schoolDate = date }, disable: () => { inactive = true } }
 }
 export async function signIn(page: Page) {
   await page.goto('/')
@@ -56,8 +57,5 @@ export async function signIn(page: Page) {
 }
 
 export async function openNavigation(page: Page) {
-  await page.locator('.ecic-sidebar, .teacher-shell').waitFor()
-  if (await page.locator('.teacher-shell').count()) return
-  const toggle = page.locator('.ecic-mobile-user')
-  if (await toggle.isVisible() && await toggle.getAttribute('aria-expanded') === 'false') await toggle.click()
+  await page.locator('.teacher-shell').waitFor()
 }

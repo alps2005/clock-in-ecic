@@ -3,6 +3,9 @@
 New teacher attendance app built with React, TypeScript, Vite, Tailwind and Supabase.
 Spanish interface, cédula/password login, school QR attendance, personal history and admin reports.
 Administrators manage teacher accounts and receive in-app notices for missed entry/exit windows.
+Both roles share a full-height desktop workspace, mobile navigation, and light/dark themes.
+Report presets use the server's Ecuador school date: “Esta semana” follows Monday–Friday,
+including when the week changes while the page is open. Custom date ranges stay unchanged.
 
 - Monday–Friday in `America/Guayaquil`.
 - Entry QR: **06:00–06:40**. Afterwards, a justification of up to **250 words** records a late arrival.
@@ -11,8 +14,8 @@ Administrators manage teacher accounts and receive in-app notices for missed ent
 
 ## Teacher administration
 
-The admin directory uses a blue book for individual history, a yellow pencil for the
-teacher edit page, and a red lock to block sign-in. Blocking preserves employment dates;
+The admin directory uses a book for individual history, a pencil for the
+teacher edit page, and a lock to block sign-in. Blocking preserves employment dates;
 access can be restored in the edit form. Password reset and permanent account deletion
 are available on the edit page. Deletion removes the login account and closes employment,
 while attendance records remain available in the general admin report.

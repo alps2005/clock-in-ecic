@@ -15,6 +15,7 @@ test('Ecuador date controls presets independently of browser timezone', () => {
   assert.equal(date, '2026-09-20')
   assert.equal(historyPresets(date)[0].from, '2026-09-14')
   assert.equal(displayDate('2026-09-14'), '14/09/2026')
+  assert.deepEqual(historyPresets(schoolDate('2026-09-21T05:00:00Z'))[0], { label: 'Esta semana', from: '2026-09-21', to: '2026-09-25' })
 })
 test('invalid ranges are blocked while preserving the 31-day limit', () => {
   assert.equal(rangeError('2026-09-19', '2026-09-18'), 'La fecha inicial no puede ser posterior a la final.')

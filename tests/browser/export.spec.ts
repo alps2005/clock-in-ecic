@@ -7,8 +7,7 @@ for (const role of ['teacher', 'admin'] as const) {
     await mockBackend(page, { role })
     await signIn(page)
     if (role === 'teacher') await page.goto('/historial')
-    const header = page.locator(role === 'teacher' ? '.teacher-history .page-heading' : '.ecic-topbar')
-    if (role === 'admin') await expect(header.locator('time')).toBeVisible()
+    const header = page.locator('.teacher-history .page-heading')
     await expect(header).not.toContainText('ADMINISTRACIÓN')
     await expect(header).not.toContainText('ECIC • Ecuador')
     await expect(header.locator('.ecic-live-dot')).toHaveCount(0)
@@ -41,7 +40,7 @@ for (const role of ['teacher', 'admin'] as const) {
 test('admin export fetches all pages using only the current school week', async ({ page }) => {
   await mockBackend(page, { role: 'admin' })
   await signIn(page)
-  await expect(page.getByRole('cell', { name: /Ana Torres/ })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ana Torres', exact: true }).filter({ visible: true })).toBeVisible()
   const pages: number[] = []
   await page.route('**/rest/v1/rpc/attendance_report', async route => {
     const request = route.request().postDataJSON()
@@ -51,7 +50,7 @@ test('admin export fetches all pages using only the current school week', async 
     pages.push(request.p_page)
     await route.fulfill({ json: { page: request.p_page, page_size: 25, totals: { expected: 26 }, rows: Array.from({ length: request.p_page === 0 ? 25 : 1 }, (_, i) => ({ teacher_id: `teacher-${request.p_page * 25 + i}`, full_name: `Docente ${request.p_page * 25 + i}`, cedula: '0123456789', school_date: '2026-09-14', entry_at: null, exit_at: null, justification: null, entry_status: 'pending', exit_status: 'pending', worked_minutes: null })) } })
   })
-  await page.locator('.ecic-topbar').getByRole('button', { name: 'Exportar', exact: true }).click()
+  await page.locator('.teacher-history .page-heading').getByRole('button', { name: 'Exportar', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByRole('row')).toHaveCount(27)
   expect(pages).toEqual([0, 1])

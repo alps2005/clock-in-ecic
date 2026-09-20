@@ -5,7 +5,7 @@ import { displayDate, shiftSchoolDate } from '../lib/historyDates'
 
 export function DatePicker({ id, label, value, onChange, invalid }: { id: string; label: string; value: string; onChange: (value: string) => void; invalid?: boolean }) {
   const [open, setOpen] = useState(false)
-  return <div><label id={`${id}-label`} htmlFor={id}>{label}</label><button id={id} type="button" className="date-trigger numeric" aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="dialog" aria-expanded={open} aria-invalid={invalid} aria-describedby={invalid ? 'history-range-error' : undefined} onClick={() => setOpen(true)}><span id={`${id}-value`}>{displayDate(value)}</span><CalendarDays size={16} aria-hidden="true" /></button>{open && <CalendarDialog label={label} value={value} onChange={onChange} close={() => setOpen(false)} />}</div>
+  return <div><label id={`${id}-label`} htmlFor={id}>{label}</label><button id={id} type="button" className="date-trigger numeric" aria-labelledby={`${id}-label ${id}-value`} aria-haspopup="dialog" aria-expanded={open} aria-invalid={invalid} aria-describedby={invalid ? 'history-range-error' : undefined} onClick={event => { event.currentTarget.focus(); setOpen(true) }}><span id={`${id}-value`}>{displayDate(value)}</span><CalendarDays size={16} aria-hidden="true" /></button>{open && <CalendarDialog label={label} value={value} onChange={onChange} close={() => setOpen(false)} />}</div>
 }
 function CalendarDialog({ label, value, onChange, close }: { label: string; value: string; onChange: (value: string) => void; close: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null)

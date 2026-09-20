@@ -1,4 +1,4 @@
-/* Teacher workspace tokens are scoped to preserve the administration interface. */
+/* Shared workspace tokens for teacher and administration screens. */
 .teacher-ui {
   --sidebar: #EEF3F5; --background: #FAFBFC; --card: #FFFFFF; --border: #E1E7EA;
   --foreground: #2B3138; --muted-foreground: #65707A; --primary: #3B444C; --primary-foreground: #FFFFFF;
@@ -52,8 +52,9 @@
 .teacher-ui .toast { position: fixed; bottom: 24px; right: 24px; z-index: 100; padding: 14px 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--foreground); max-width: calc(100% - 32px); }
 .teacher-ui .refreshing { animation: spin .6s linear 1; }
 @media (prefers-reduced-motion: reduce) { .teacher-ui *, .teacher-ui *::before, .teacher-ui *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
-.teacher-shell { display: grid; grid-template-columns: 256px minmax(0, 1fr); height: 100dvh; overflow: hidden; }
-.teacher-sidebar { padding: 24px 16px 16px; display: flex; flex-direction: column; min-width: 0; }
+.teacher-shell { display: grid; grid-template-columns: 256px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); height: 100dvh; overflow: hidden; }
+.teacher-shell > [role=status] { position: fixed; z-index: 100; }
+.teacher-sidebar { padding: 24px 16px 16px; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow-y: auto; }
 .teacher-brand { display: flex; gap: 10px; align-items: center; margin-bottom: 30px; }
 .teacher-brand img { border-radius: 8px; }
 .teacher-brand strong { font-weight: 600; white-space: nowrap; }
@@ -68,7 +69,7 @@
 .teacher-identity small { display: block; font-size: 12px; }
 .teacher-avatar { display: grid; place-items: center; height: 36px; width: 36px; border-radius: 50%; background: var(--accent); color: var(--accent-foreground); flex-shrink: 0; border: 0; font-weight: 600; }
 .teacher-ui .teacher-logout { margin-top: 12px; padding-left: 0; color: var(--muted-foreground); background: transparent; }
-.teacher-frame { border: 1px solid var(--border); border-radius: 14px; margin: 8px 8px 8px 0; overflow: hidden; background: var(--background); display: flex; flex-direction: column; min-width: 0; }
+.teacher-frame { border: 1px solid var(--border); border-radius: 14px; margin: 8px 8px 8px 0; overflow: hidden; background: var(--background); display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .teacher-topbar { height: 56px; flex-shrink: 0; border-bottom: 1px solid var(--border); background: var(--card); display: flex; align-items: center; padding: 0 20px; gap: 12px; }
 .teacher-desktop-title { display: flex; align-items: center; gap: 12px; }
 .topbar-separator { height: 18px; width: 1px; background: var(--border); }

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import { ArrowLeft, BookOpen, Pencil } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useRemote } from '../../app/useRemote'
+import { usePageRefresh } from '../../app/usePageRefresh'
 import { Failure, Loading } from '../../components/Feedback'
 import { getTeacher } from '../../lib/api'
 import type { AppContext } from '../../types/app'
@@ -17,6 +18,7 @@ export function TeacherPage({ context, editing = false }: { context: AppContext;
 function TeacherDetails({ teacherId, context, editing }: { teacherId: string; context: AppContext; editing: boolean }) {
   const load = useCallback(() => getTeacher(teacherId), [teacherId])
   const result = useRemote(load)
+  usePageRefresh(result.refresh, result.data, result.error, !result.data)
   const navigate = useNavigate()
   const [action, setAction] = useState<Editor['action'] | null>(editing ? 'update' : null)
   const [message, setMessage] = useState('')
@@ -26,7 +28,7 @@ function TeacherDetails({ teacherId, context, editing }: { teacherId: string; co
   const teacher = result.data
   return <>
     {back}
-    <div className="page-heading teacher-detail-heading"><div><p className="eyebrow">ADMINISTRACIÓN · DOCENTE</p><h1>{teacher.full_name}</h1><p>C.I. {teacher.cedula} · <span className={`badge ${teacher.active ? 'green' : 'amber'}`}>{teacher.active ? 'Activo' : 'Bloqueado'}</span></p></div>
+    <div className="page-heading teacher-detail-heading"><div><h1>{teacher.full_name}</h1><p>C.I. {teacher.cedula} · <span className={`badge ${teacher.active ? 'green' : 'amber'}`}>{teacher.active ? 'Activo' : 'Bloqueado'}</span></p></div>
       <Link className="button secondary" to={`/admin/docentes/${teacher.id}${editing ? '' : '/editar'}`}>{editing ? <BookOpen size={18} aria-hidden="true" /> : <Pencil size={18} aria-hidden="true" />}{editing ? 'Ver historial' : 'Editar docente'}</Link>
     </div>
     {message && <p className="feedback success" role="status">{message}</p>}
