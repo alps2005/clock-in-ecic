@@ -22,7 +22,15 @@ test('management endpoint rejects missing, invalid, teacher, and revoked adminis
 test('blocking preserves employment dates; deleting removes Auth only after revoking sessions', async () => {
   const id = '20000000-0000-0000-0000-000000000001'
   const authId = '10000000-0000-0000-0000-000000000001'
-  for (const action of ['disable', 'delete']) {
+  const scenarios = [
+    { action: 'disable', teacher: { id, employed_from: '2026-09-01', employed_until: null } },
+    { action: 'disable', teacher: null },
+    { action: 'disable', teacher: { id, employed_from: null, employed_until: null } },
+    { action: 'disable', teacher: { id, employed_from: 'invalid', employed_until: null } },
+    { action: 'disable', teacher: { id, employed_from: '2026-09-01', employed_until: '2026-08-01' } },
+    { action: 'delete', teacher: null },
+  ]
+  for (const { action, teacher } of scenarios) {
     const calls: { path: string; method: string; body: Record<string, unknown> }[] = []
     const caller = createClient('https://fixture.invalid', 'public-key', { auth: { persistSession: false }, global: { fetch: async input => {
       const path = new URL(String(input)).pathname
@@ -35,8 +43,8 @@ test('blocking preserves employment dates; deleting removes Auth only after revo
       calls.push({ path, method, body })
       if (path.endsWith('/lock_teacher_admin')) return Response.json('30000000-0000-0000-0000-000000000001')
       if (path.endsWith('/profiles')) return Response.json(method === 'PATCH' ? { id } : { id, auth_user_id: authId, role: 'teacher', active: true, session_version: 1, full_name: 'Teacher A', cedula: '0000000001' })
-      if (path.endsWith('/teachers')) return Response.json({ id, employed_from: '2026-09-01', employed_until: null })
-      if (path === `/auth/v1/admin/users/${authId}`) return Response.json({ id: authId, app_metadata: { ecic_profile_id: id } })
+      if (path.endsWith('/teachers')) return Response.json(teacher)
+      if (path === `/auth/v1/admin/users/${authId}`) return Response.json({ id: authId, app_metadata: { ecic_profile_id: id, custom_flag: true } })
       if (path.includes('/rpc/finish_teacher_') || path.endsWith('/unlock_teacher_admin')) return Response.json(null)
       throw new Error(`Unexpected test request: ${method} ${path}`)
     } } })
@@ -46,10 +54,10 @@ test('blocking preserves employment dates; deleting removes Auth only after revo
     assert.deepEqual(calls[revoke].body, { active: false, session_version: 2 })
     if (action === 'disable') {
       assert.ok(!calls.some(call => call.method === 'DELETE'))
-      const finish = calls.find(call => call.path.endsWith('/finish_teacher_admin'))!
-      assert.equal(finish.body.p_until, null)
-      assert.equal(finish.body.p_active, false)
-      assert.equal(calls.find(call => call.method === 'PUT')?.body.ban_duration, '876000h')
+      assert.ok(!calls.some(call => call.path.endsWith('/teachers') || call.path.endsWith('/attendance_events') || call.path.endsWith('/finish_teacher_admin')), 'Blocking must not read, validate, or rewrite employment/history')
+      const ban = calls.findIndex(call => call.method === 'PUT')
+      assert.ok(ban > revoke, 'Existing sessions must be revoked before banning new logins')
+      assert.deepEqual(calls[ban].body, { ban_duration: '876000h', app_metadata: { ecic_profile_id: id, ecic_session_version: 2, custom_flag: true } })
     } else {
       const deletion = calls.findIndex(call => call.method === 'DELETE')
       assert.ok(deletion > revoke)
@@ -57,5 +65,58 @@ test('blocking preserves employment dates; deleting removes Auth only after revo
       assert.ok(calls.findIndex(call => call.path.endsWith('/finish_teacher_delete')) > deletion)
     }
     assert.ok(calls.at(-1)?.path.endsWith('/unlock_teacher_admin'))
+  }
+})
+
+test('blocking verifies identity, detects concurrent changes, and keeps access revoked if Auth fails', async () => {
+  const id = '20000000-0000-0000-0000-000000000001'
+  const authId = '10000000-0000-0000-0000-000000000001'
+  for (const scenario of ['identity', 'concurrent', 'auth-failure']) {
+    const profile = { id, auth_user_id: authId, role: 'teacher', active: true, session_version: 1 }
+    let profileWrites = 0, authWrites = 0, unlocks = 0
+    const caller = createClient('https://fixture.invalid', 'public-key', { auth: { persistSession: false }, global: { fetch: async input => {
+      const path = new URL(String(input)).pathname
+      return Response.json(path === '/auth/v1/user' ? { id: 'admin-id' } : { profile: { role: 'admin', auth_user_id: 'admin-id' } })
+    } } })
+    const service = createClient('https://fixture.invalid', 'service-key', { auth: { persistSession: false }, global: { fetch: async (input, init) => {
+      const path = new URL(String(input)).pathname
+      const method = init?.method ?? 'GET'
+      if (path.endsWith('/lock_teacher_admin')) return Response.json('30000000-0000-0000-0000-000000000001')
+      if (path.endsWith('/unlock_teacher_admin')) { unlocks++; return Response.json(null) }
+      if (path.endsWith('/profiles')) {
+        if (method === 'PATCH') {
+          profileWrites++
+          if (scenario === 'concurrent') return Response.json(null)
+          Object.assign(profile, JSON.parse(String(init?.body)))
+        }
+        return Response.json(profile)
+      }
+      if (path === `/auth/v1/admin/users/${authId}`) {
+        if (method === 'PUT') {
+          authWrites++
+          if (authWrites === 1) return Response.json({ message: 'Auth update failed' }, { status: 500 })
+        }
+        return Response.json({ id: authId, app_metadata: { ecic_profile_id: scenario === 'identity' ? 'another-profile' : id } })
+      }
+      throw new Error(`Unexpected test request: ${method} ${path}`)
+    } } })
+    const request = () => new Request('https://fixture.invalid/admin-teachers', { method: 'POST', headers: { Authorization: 'Bearer dummy-token' }, body: JSON.stringify({ action: 'disable', id }) })
+    const response = await handleTeacherAdmin(request(), caller, service)
+    assert.equal(response.status, 400)
+    assert.deepEqual(await response.json(), { error: scenario === 'identity' ? 'IDENTITY_MISMATCH' : scenario === 'concurrent' ? 'ACCOUNT_CHANGED' : 'ADMIN_OPERATION_FAILED' })
+    assert.equal(unlocks, 1)
+    assert.equal(profileWrites, scenario === 'identity' ? 0 : 1)
+    assert.equal(authWrites, scenario === 'auth-failure' ? 1 : 0)
+    if (scenario === 'auth-failure') {
+      assert.equal(profile.active, false)
+      assert.equal(profile.session_version, 2)
+      const retry = await handleTeacherAdmin(request(), caller, service)
+      assert.equal(retry.status, 200)
+      assert.deepEqual(await retry.json(), { ok: true, id })
+      assert.equal(profile.active, false)
+      assert.equal(profile.session_version, 3)
+      assert.equal(authWrites, 2)
+      assert.equal(unlocks, 2)
+    }
   }
 })

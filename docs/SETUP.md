@@ -113,8 +113,9 @@ is handled by the administrator. Use a password minimum of 12 characters to matc
 
 The initial administrator still uses the trusted provisioning command below. Once signed in,
 administrators manage teachers from **Docentes** (`/admin/docentes`). They can create accounts,
-edit names/C.I./employment dates, set a new password, and remove or restore access. Removing
-access ends employment on the selected inclusive date and preserves attendance history.
+edit names/C.I./employment dates, set a new password, and remove or restore access. Blocking
+access revokes current sessions and prevents new logins without requiring or changing employment
+dates. Attendance history is preserved; ending employment is a separate edit to its inclusive end date.
 Existing passwords cannot be displayed; the new password is visible only while being entered.
 
 The screen requires the `admin-teachers` Supabase Edge Function and the teacher-administration

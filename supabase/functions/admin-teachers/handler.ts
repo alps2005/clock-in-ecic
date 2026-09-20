@@ -46,6 +46,20 @@ export async function handleTeacherAdmin(request: Request, caller: SupabaseClien
     if (!profile || profile.role !== 'teacher') throw new Error('TEACHER_NOT_FOUND')
     // Also serialize a resumed creation against edits to its now-visible pending profile.
     if (action !== 'create' && action !== 'delete' && !profile.auth_user_id) throw new Error('ACCOUNT_PENDING')
+    if (action === 'disable') {
+      // Access can be revoked even if the teacher's employment record is incomplete.
+      const user = check(await service.auth.admin.getUserById(profile.auth_user_id)).user
+      if (!user || user.app_metadata.ecic_profile_id !== profile.id) throw new Error('IDENTITY_MISMATCH')
+      const version = profile.session_version + 1
+      const prepared = check(await service.from('profiles').update({ active: false, session_version: version }).eq('id', profile.id).eq('session_version', profile.session_version).select('id').maybeSingle())
+      if (!prepared) throw new Error('ACCOUNT_CHANGED')
+      // Revoke current sessions first, then prevent new logins without rewriting teacher data.
+      check(await service.auth.admin.updateUserById(user.id, {
+        ban_duration: '876000h',
+        app_metadata: { ...user.app_metadata, ecic_session_version: version },
+      }))
+      return reply({ ok: true, id: profile.id })
+    }
     if (action === 'delete') {
       // Revoke existing sessions before deleting Auth; retries can finish after Auth is gone.
       if (profile.auth_user_id) {
@@ -74,7 +88,7 @@ export async function handleTeacherAdmin(request: Request, caller: SupabaseClien
       if (duplicate) throw new Error('ACCOUNT_EXISTS')
     }
     const fullName = action === 'create' || action === 'update' ? String(input.full_name).trim() : profile.full_name
-    const active = action === 'disable' ? false : action === 'create' ? true : action === 'update' ? Boolean(input.active) : profile.active
+    const active = action === 'create' ? true : action === 'update' ? Boolean(input.active) : profile.active
     const version = profile.session_version + 1
     const prepared = check(await service.from('profiles').update({ active: false, session_version: version }).eq('id', profile.id).eq('session_version', profile.session_version).select('id').maybeSingle())
     if (!prepared) throw new Error('ACCOUNT_CHANGED')
