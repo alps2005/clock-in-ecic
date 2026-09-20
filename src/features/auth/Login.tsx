@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { ArrowRight, Eye, EyeOff, LoaderCircle, LogIn } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, LoaderCircle } from 'lucide-react'
 import { config, supabase } from '../../lib/supabase'
 import { loginIdentity, validCedula } from '../../lib/attendance'
 import { PublicLayout } from '../../components/PublicLayout'
@@ -23,7 +23,7 @@ export function Login() {
     finally { setPending(false); setPassword('') }
   }
   return <PublicLayout>
-      <section className="ui-card auth-card" aria-labelledby="login-title"><span className="auth-symbol" aria-hidden="true"><LogIn size={22} /></span><h1 id="login-title">Asistencia Docente ECIC</h1><p>Ingresa con los datos de tu cuenta institucional.</p>
+      <section className="ui-card auth-card" aria-labelledby="login-title"><h1 id="login-title">Asistencia Docente ECIC</h1><p>Ingresa con los datos de tu cuenta institucional.</p>
         {!config.ready && <div className="feedback notice" role="status"><h3>Estamos preparando tu espacio</h3><p>El acceso estará disponible cuando termine la configuración de la institución.</p></div>}
         <form onSubmit={submit} aria-busy={pending}>
           <label htmlFor="cedula">Cédula</label><input id="cedula" name="username" autoComplete="username" inputMode="numeric" pattern="[0-9]{10}" maxLength={10} required placeholder="Tu cédula de 10 dígitos" value={cedula} onChange={e => setCedula(e.target.value.replace(/\D/g, ''))} disabled={pending || !config.ready} />
