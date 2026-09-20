@@ -1,4 +1,3 @@
-import '../teacher.css'
 import '../admin.css'
 import { useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
@@ -6,7 +5,7 @@ import { WorkspaceShell } from './WorkspaceShell'
 import { getAdminSidebarCounts, getContext } from '../lib/api'
 import { supabase } from '../lib/supabase'
 import { useRemote } from './useRemote'
-import { Failure } from '../components/Feedback'
+import { AccessFailure, Loading } from '../components/Feedback'
 import { Attendance } from '../features/attendance/Attendance'
 import { History } from '../features/history/History'
 import { TeacherPage } from '../features/admin/TeacherPage'
@@ -27,8 +26,8 @@ export function Workspace({ userId }: { userId: string }) {
       sessionStorage.removeItem('ecic-pending-attendance'); sessionStorage.removeItem('ecic-pending-owner')
     } catch { setLogoutError('No se pudo cerrar la sesión. Inténtalo nuevamente.'); setLoggingOut(false) }
   }
-  if (context.loading) return <div className="teacher-ui workspace-loading" role="status" aria-label="Cargando tu espacio" aria-busy="true"><div className="jornada-kpis">{[1, 2, 3].map(i => <div className="skeleton" key={i} />)}</div><div className="skeleton schedule" /></div>
-  if (context.error || !context.data || context.data.profile.auth_user_id !== userId) return <div className="access-error"><Failure error={context.error ?? new Error('ACCESS_DENIED')} retry={context.refresh} /><button className="button secondary" onClick={() => void logout()}>Cerrar sesión</button>{logoutError && <p role="alert">{logoutError}</p>}</div>
+  if (context.loading) return <Loading fullPage />
+  if (context.error || !context.data || context.data.profile.auth_user_id !== userId) return <AccessFailure error={context.error ?? new Error('ACCESS_DENIED')} retry={context.refresh} logout={() => void logout()} loggingOut={loggingOut} logoutError={logoutError} />
   const data = context.data
   const admin = data.profile.role === 'admin'
   return <WorkspaceShell context={data} counts={sidebarCounts.data} logout={() => void logout()} loggingOut={loggingOut} logoutError={logoutError}>

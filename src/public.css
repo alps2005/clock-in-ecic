@@ -1,0 +1,55 @@
+.public-shell { min-height: 100dvh; padding: 8px; }
+.public-frame { min-height: calc(100dvh - 16px); display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 14px; background: var(--background); overflow: hidden; }
+.public-topbar { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--border); background: var(--card); }
+.public-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; }
+.public-brand img { flex-shrink: 0; border-radius: 8px; }
+.public-brand strong { display: block; font-weight: 600; line-height: 1.3; }
+.public-brand small { display: block; font-size: 12px; }
+.public-clock { display: flex; align-items: center; gap: 10px; color: var(--muted-foreground); flex-shrink: 0; }
+.public-clock span { display: block; font-size: 11px; }
+.public-clock time { display: block; font-size: 13px; color: var(--foreground); }
+.public-content { flex: 1; width: 100%; padding: 48px 24px; display: flex; align-items: center; justify-content: center; }
+.public-shell .site-footer { margin: 0 24px; min-height: 64px; font-size: 11px; }
+.public-shell .ui-card { width: 100%; max-width: 420px; padding: 28px; }
+.public-shell h1 { font-size: 24px; line-height: 1.3; }
+.auth-symbol { display: inline-grid; place-items: center; width: 44px; height: 44px; margin-bottom: 20px; border-radius: 10px; background: var(--accent); color: var(--accent-foreground); flex-shrink: 0; }
+.auth-card > p, .loading-state p, .access-message { font-size: 13px; color: var(--muted-foreground); line-height: 1.6; }
+.auth-card form { margin-top: 24px; }
+.auth-card label { font-size: 13px; font-weight: 500; margin: 18px 0 6px; }
+.auth-card label:first-child { margin-top: 0; }
+.auth-card input { min-height: 44px; padding: 10px 12px; font-size: 16px; border-radius: 8px; border-color: var(--border); background: var(--background); }
+.auth-card input:disabled { opacity: .65; }
+.auth-card .password-field input { padding-right: 48px; }
+.auth-card .password-field button { right: 0; width: 44px; display: grid; place-items: center; border-radius: 8px; color: var(--muted-foreground); }
+.auth-card .password-field button:hover { color: var(--foreground); }
+.auth-card .login-submit { width: 100%; min-height: 44px; margin-top: 24px; justify-content: center; }
+.auth-card .login-submit svg { color: inherit; }
+.auth-card .feedback { margin-top: 16px; }
+.auth-card .login-help { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 12px; }
+.auth-card .login-help a { color: var(--accent-foreground); }
+.auth-card .login-help strong { font-weight: 500; }
+.access-card { text-align: center; }
+.access-card .access-symbol { background: var(--warning-bg); color: var(--warning-fg); }
+.public-shell .access-message { margin-top: 10px; }
+.access-actions { display: grid; gap: 10px; margin-top: 24px; }
+.access-actions .button { min-height: 44px; }
+.access-card .feedback { margin-top: 16px; text-align: left; }
+.loading-state { display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 32px 20px; text-align: center; color: var(--foreground); }
+.loading-state strong { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.access-card .loading-state { padding: 8px 0; }
+.loading-spinner { animation: spin 1s linear infinite; }
+.loading-progress { width: 160px; height: 4px; overflow: hidden; border-radius: 4px; background: var(--neutral-bg); margin-top: 24px; }
+.loading-progress span { display: block; height: 100%; width: 40%; border-radius: inherit; background: var(--ring); animation: loading-progress 1.6s ease-in-out infinite alternate; }
+@keyframes loading-progress { from { transform: translateX(0); } to { transform: translateX(150%); } }
+@media (max-width: 600px) {
+  .public-shell { padding: 0; }
+  .public-frame { min-height: 100dvh; border: 0; border-radius: 0; }
+  .public-topbar { padding: calc(12px + env(safe-area-inset-top)) 16px 12px; }
+  .public-brand small { display: none; }
+  .public-clock { gap: 6px; }
+  .public-clock > svg { display: none; }
+  .public-content { padding: 32px 16px; }
+  .public-shell .ui-card { padding: 24px; }
+  .public-shell h1 { font-size: 22px; }
+  .public-shell .site-footer { margin: 0 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+}

@@ -11,9 +11,11 @@ import { expect, test } from '@playwright/test'
   await page.screenshot({ path: testInfo.outputPath('login.png'), fullPage: true })
 })
 
-test('supports keyboard navigation to main content', async ({ page }) => {
+test('supports keyboard navigation to main content', async ({ page, browserName }) => {
   await page.goto('/')
-  await page.keyboard.press('Tab')
+  await expect(page.getByRole('heading', { name: 'Asistencia Docente ECIC' })).toBeVisible()
+  // WebKit on macOS uses Option+Tab to include links in keyboard navigation.
+  await page.keyboard.press(browserName === 'webkit' ? 'Alt+Tab' : 'Tab')
   await expect(page.getByRole('link', { name: 'Ir al contenido' })).toBeFocused()
   await page.keyboard.press('Enter')
   await expect(page.getByRole('main')).toBeFocused()

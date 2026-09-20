@@ -1,31 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { ArrowUpRight, Clock3 } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, LoaderCircle, LogIn } from 'lucide-react'
 import { config, supabase } from '../../lib/supabase'
 import { loginIdentity, validCedula } from '../../lib/attendance'
-import { SiteFooter } from '../../components/SiteFooter'
-
-const clockFormatter = new Intl.DateTimeFormat('es-EC', {
-  timeZone: 'America/Guayaquil',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-  hourCycle: 'h23',
-})
-
-function LoginClock() {
-  const [now, setNow] = useState(() => new Date())
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 1000)
-    return () => window.clearInterval(timer)
-  }, [])
-
-  return <div className="login-clock" title="Hora de Ecuador continental (UTC-5)">
-    <Clock3 size={16} strokeWidth={1.8} aria-hidden="true" />
-    <time dateTime={now.toISOString()} aria-label={`Hora de Ecuador: ${clockFormatter.format(now)}`}>{clockFormatter.format(now)}</time>
-  </div>
-}
+import { PublicLayout } from '../../components/PublicLayout'
 
 export function Login() {
   const [cedula, setCedula] = useState('')
@@ -44,20 +22,15 @@ export function Login() {
     } catch { setError('No pudimos conectar. Revisa tu conexión e inténtalo de nuevo.') }
     finally { setPending(false); setPassword('') }
   }
-  return <div className="welcome">
-    <a className="skip-link" href="#main">Ir al contenido</a>
-    <header className="site-header"><a className="brand" href="/" aria-label="Asistencia Docente ECIC, inicio"><img className="brand-mark" src="/favicon.svg" alt="" width="43" height="43" /><span>Asistencia Docente ECIC</span></a><LoginClock /></header>
-    <main id="main" tabIndex={-1}>
-      <section className="login-card" aria-labelledby="login-title"><h1 id="login-title">Asistencia Docente ECIC</h1><p>Ingresa con los datos de tu cuenta institucional.</p>
+  return <PublicLayout>
+      <section className="ui-card auth-card" aria-labelledby="login-title"><span className="auth-symbol" aria-hidden="true"><LogIn size={22} /></span><h1 id="login-title">Asistencia Docente ECIC</h1><p>Ingresa con los datos de tu cuenta institucional.</p>
         {!config.ready && <div className="feedback notice" role="status"><h3>Estamos preparando tu espacio</h3><p>El acceso estará disponible cuando termine la configuración de la institución.</p></div>}
-        <form onSubmit={submit}>
+        <form onSubmit={submit} aria-busy={pending}>
           <label htmlFor="cedula">Cédula</label><input id="cedula" name="username" autoComplete="username" inputMode="numeric" pattern="[0-9]{10}" maxLength={10} required placeholder="Tu cédula de 10 dígitos" value={cedula} onChange={e => setCedula(e.target.value.replace(/\D/g, ''))} disabled={pending || !config.ready} />
-          <label htmlFor="password">Contraseña</label><div className="password-field"><input id="password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} disabled={pending || !config.ready} /><button type="button" onClick={() => setShowPassword(v => !v)} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>{showPassword ? 'Ocultar' : 'Mostrar'}</button></div>
+          <label htmlFor="password">Contraseña</label><div className="password-field"><input id="password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} disabled={pending || !config.ready} /><button type="button" onClick={() => setShowPassword(v => !v)} aria-pressed={showPassword} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>{showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}</button></div>
           {error && <p className="feedback error" role="alert">{error}</p>}
-          <button className="button primary login-submit" disabled={pending || !config.ready}>{pending ? 'Ingresando…' : 'Ingresar'}<ArrowUpRight size={17} strokeWidth={1.9} aria-hidden="true" /></button>
+          <button className="button primary login-submit" disabled={pending || !config.ready}>{pending ? 'Ingresando…' : 'Ingresar'}{pending ? <LoaderCircle className="loading-spinner" size={17} aria-hidden="true" /> : <ArrowRight size={17} aria-hidden="true" />}</button>
         </form><p className="login-help">¿Olvidaste tu contraseña?<br />Solicita el restablecimiento a la <a href="https://wa.me/593967953821" target="_blank" rel="noopener noreferrer" aria-label="Contactar a administración por WhatsApp (se abre en una pestaña nueva)"><strong>administración</strong></a>.</p>
       </section>
-    </main>
-    <SiteFooter />
-  </div>
+  </PublicLayout>
 }

@@ -227,7 +227,6 @@
 .history-presets button[aria-pressed=true] { background: var(--card); border-color: transparent; color: var(--foreground); }
 .summary-bar { gap: 3px; }
 .summary-bar > span { border-radius: 999px; }
-.teacher-ui .workspace-loading, .workspace-loading { min-height: 100dvh; padding: 80px 28px; display: grid; align-content: start; gap: 20px; }
 .teacher-ui .justification-body { padding: 12px; border: 1px dashed var(--border); border-radius: 10px; font-size: 13px; }
 @media(max-width: 1000px) { .history-date-fields > .button { flex-basis: 100%; } }
 @media(max-width: 900px) { .teacher-topbar { padding-top: env(safe-area-inset-top); height: calc(56px + env(safe-area-inset-top)); } }

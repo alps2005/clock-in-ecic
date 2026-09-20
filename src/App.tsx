@@ -6,6 +6,8 @@ import { Login } from './features/auth/Login'
 const Workspace = lazy(() => import('./app/Workspace').then(module => ({ default: module.Workspace })))
 import { Loading } from './components/Feedback'
 import './App.css'
+import './teacher.css'
+import './public.css'
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -22,5 +24,5 @@ export default function App() {
     })
     return () => data.subscription.unsubscribe()
   }, [])
-  return <BrowserRouter>{loading ? <Loading /> : session ? <Suspense fallback={<Loading />}><Workspace key={session.user.id} userId={session.user.id} /></Suspense> : <Login />}</BrowserRouter>
+  return <BrowserRouter>{loading ? <Loading fullPage /> : session ? <Suspense fallback={<Loading fullPage />}><Workspace key={session.user.id} userId={session.user.id} /></Suspense> : <Login />}</BrowserRouter>
 }

@@ -10,7 +10,7 @@ export default defineConfig({
   projects: [
     { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile-chromium', use: { ...devices['Pixel 7'] } },
-    { name: 'desktop-webkit', testMatch: /(workspace-layout|export)\.spec\.ts/, use: { ...devices['Desktop Safari'] } },
+    { name: 'desktop-webkit', testMatch: /(workspace-layout|export|public-ui|foundation)\.spec\.ts/, use: { ...devices['Desktop Safari'] } },
   ],
   webServer: {
     command: 'npm run preview -- --host 127.0.0.1 --port 4173 --strictPort',
