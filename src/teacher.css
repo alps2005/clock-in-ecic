@@ -48,6 +48,12 @@
 .teacher-ui .feedback.notice { background: var(--warning-bg); color: var(--warning-fg); }
 .teacher-ui .feedback.success { background: var(--success-bg); color: var(--success-fg); }
 .teacher-ui .skeleton { height: 130px; background: var(--neutral-bg); border: 1px solid var(--border); border-radius: 12px; }
+.teacher-ui .panel-placeholder { display: grid; gap: 12px; padding: 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.teacher-ui .panel-placeholder-heading { width: min(280px, 60%); height: 22px; }
+.teacher-ui .panel-placeholder-subheading { width: min(420px, 85%); height: 14px; }
+.teacher-ui .panel-placeholder-rows { display: grid; gap: 8px; margin-top: 8px; }
+.teacher-ui .panel-placeholder-row { height: 54px; }
+.teacher-ui .panel-placeholder.detail .panel-placeholder-row { height: 72px; }
 .teacher-ui .skeleton.schedule { height: 270px; }
 .teacher-ui .toast { position: fixed; bottom: 24px; right: 24px; z-index: 100; padding: 14px 18px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--foreground); max-width: calc(100% - 32px); }
 .teacher-ui .refreshing { animation: spin .6s linear 1; }

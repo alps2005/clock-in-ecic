@@ -4,7 +4,8 @@ import { ArrowLeft, BookOpen, Pencil } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useRemote } from '../../app/useRemote'
 import { usePageRefresh } from '../../app/usePageRefresh'
-import { Failure, Loading } from '../../components/Feedback'
+import { Failure } from '../../components/Feedback'
+import { PanelPlaceholder } from '../../components/PanelPlaceholder'
 import { getTeacher } from '../../lib/api'
 import type { AppContext } from '../../types/app'
 import { History } from '../history/History'
@@ -25,7 +26,7 @@ function TeacherDetails({ teacherId, context, editing }: { teacherId: string; co
   const [action, setAction] = useState<Editor['action'] | null>(editing ? 'update' : null)
   const [message, setMessage] = useState('')
   const back = <Link className="button secondary teacher-back" to="/admin/docentes"><ArrowLeft size={18} aria-hidden="true" />Volver a docentes</Link>
-  if (result.loading) return <>{back}<Loading /></>
+  if (result.loading) return <>{back}<PanelPlaceholder label="Cargando docente" variant="detail" /></>
   if (result.error || !result.data) return <>{back}<Failure error={result.error} retry={result.refresh} /></>
   const teacher = result.data
   return <>
