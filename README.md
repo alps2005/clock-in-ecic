@@ -3,7 +3,7 @@
 New teacher attendance app built with React, TypeScript, Vite, Tailwind and Supabase.
 Spanish interface, cédula/password login, school QR attendance, personal history and admin reports.
 Administrators manage teacher accounts and receive in-app notices for missed entry/exit windows.
-Both roles share a full-height desktop workspace, mobile navigation, and light/dark themes.
+Both roles share a full-height desktop workspace and mobile navigation. Light mode is the default; the sun/moon button in the header switches palettes and remembers the choice across login, loading, dialogs, and subsequent visits. Theme changes sync between tabs. Sidebar sweeps, panel entrances, and dialog transitions respect the device’s reduced-motion preference.
 Report presets use the server's Ecuador school date: “Esta semana” follows Monday–Friday,
 including when the week changes while the page is open. Custom date ranges stay unchanged.
 

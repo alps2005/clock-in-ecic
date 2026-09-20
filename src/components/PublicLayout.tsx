@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Clock3 } from 'lucide-react'
 import { schoolTimezone } from '../lib/attendance'
+import { ThemeToggle } from './ThemeToggle'
 import { SiteFooter } from './SiteFooter'
 
 const clockFormatter = new Intl.DateTimeFormat('es-EC', {
@@ -29,7 +30,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           <img src="/favicon.svg" width="36" height="36" alt="" />
           <div><strong>ECIC Clock-in</strong><small>Gestión de personal docente</small></div>
         </a>
-        <SchoolClock />
+        <div className="public-topbar-actions"><SchoolClock /><ThemeToggle /></div>
       </header>
       <main id="public-main" tabIndex={-1} className="public-content">{children}</main>
       <SiteFooter />

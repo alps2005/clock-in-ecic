@@ -55,3 +55,6 @@
   .public-shell h1 { font-size: 22px; }
   .public-shell .site-footer { margin: 0 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 }
+
+.public-topbar-actions { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+@media (max-width: 380px) { .public-topbar { gap: 8px; }.public-topbar-actions { gap: 8px; }.public-brand { gap: 6px; }.public-brand strong { font-size: 12px; }.public-brand img { width: 28px; height: 28px; } }

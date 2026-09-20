@@ -1,26 +1,5 @@
-/* Shared workspace tokens for teacher and administration screens. */
-.teacher-ui {
-  --sidebar: #EEF3F5; --background: #FAFBFC; --card: #FFFFFF; --border: #E1E7EA;
-  --foreground: #2B3138; --muted-foreground: #65707A; --primary: #3B444C; --primary-foreground: #FFFFFF;
-  --accent: #DCEBF1; --accent-border: #C3DFE9; --accent-foreground: #276579; --ring: #7FB6C8; --brand: #4E5A63;
-  --success-bg: #E3F2EA; --success-fg: #1F6A48; --success-dot: #3E9A72;
-  --warning-bg: #FBF0DC; --warning-fg: #83540A; --warning-dot: #D89A2B;
-  --danger-bg: #FBE8E6; --danger-fg: #A1352C; --danger-dot: #D0564B;
-  --neutral-bg: #EDF1F3; --neutral-fg: #4A535B;
-  --brand-charcoal: var(--foreground); --text-muted: var(--muted-foreground); --surface: var(--card);
-  --surface-page: var(--background); --surface-muted: var(--sidebar); --surface-sky: var(--accent); --border-control: var(--border);
-  color: var(--foreground); background: var(--sidebar); font: 14px/1.5 'Geist', Inter, system-ui, sans-serif; color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  .teacher-ui { --sidebar: #14181B; --background: #181D21; --card: #1E2429; --border: #2A3238;
-    --foreground: #E8EDF0; --muted-foreground: #98A5AF; --accent: #1F3640; --accent-border: #2E4C58;
-    --accent-foreground: #8CCADB; --ring: #6FA9BC; --primary: #E6EBEE; --primary-foreground: #1B2024;
-    --success-bg: #17332A; --success-fg: #8AD1AE; --success-dot: #4FB48A;
-    --warning-bg: #3A2E14; --warning-fg: #F0C674; --warning-dot: #E0AE4E;
-    --danger-bg: #3D1F1D; --danger-fg: #F2A29B; --danger-dot: #E27A70;
-    --neutral-bg: #262E34; --neutral-fg: #B4BFC7; color-scheme: dark;
-  }
-}
+/* Shared workspace styles for teacher, administration and public screens. */
+.teacher-ui { color: var(--foreground); background: var(--sidebar); font: 14px/1.5 "Geist", Inter, system-ui, sans-serif; color-scheme: var(--theme-scheme); }
 
 .teacher-ui :focus-visible { outline: 2px solid var(--accent-foreground); outline-offset: 2px; }
 .teacher-ui h1 { font-size: 28px; font-weight: 600; letter-spacing: -.025em; line-height: 1.25; margin: 0 0 6px; }

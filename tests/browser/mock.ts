@@ -59,3 +59,8 @@ export async function signIn(page: Page) {
 export async function openNavigation(page: Page) {
   await page.locator('.teacher-shell').waitFor()
 }
+
+export async function setTheme(page: Page, theme: 'light' | 'dark') {
+  const current = await page.locator('html').getAttribute('data-theme')
+  if (current !== theme) await page.getByRole('button', { name: theme === 'dark' ? 'Activar modo oscuro' : 'Activar modo claro' }).filter({ visible: true }).click()
+}

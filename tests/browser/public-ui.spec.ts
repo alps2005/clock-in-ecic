@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { mockBackend } from './mock.ts'
+import { setTheme, mockBackend } from './mock.ts'
 
 async function enterCredentials(page: import('@playwright/test').Page) {
   await page.getByLabel('Cédula', { exact: true }).fill('0000000001')
@@ -97,7 +97,8 @@ test('login, loading and error fit narrow and desktop screens in both themes', a
       await expect(page.getByRole('heading', { name: 'No pudimos cargar tu espacio' })).toBeVisible()
     }
     for (const theme of ['light', 'dark'] as const) {
-      await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+      await setTheme(page, theme)
       for (const width of [320, 402, 768, 1440]) {
         await page.setViewportSize({ width, height: width === 320 ? 600 : 900 })
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
@@ -142,8 +143,19 @@ for (const role of ['teacher', 'admin'] as const) {
     expect(Math.abs(counterValue - waitingValue)).toBeLessThanOrEqual(1)
     await expect(page.getByRole('heading', { name: 'Detalle de asistencia', exact: true })).toBeHidden()
     await page.screenshot({ path: info.outputPath(`${role}-real-progress.png`), fullPage: true })
+    // Completion is intentionally brief before the panel replaces the loader.
+    // Observe it directly instead of polling and potentially missing that frame.
+    await progress.evaluate(element => {
+      const observer = new MutationObserver(() => {
+        if (element.getAttribute('aria-valuenow') === '100') {
+          document.documentElement.dataset.loadingCompleted = 'true'
+          observer.disconnect()
+        }
+      })
+      observer.observe(element, { attributes: true, attributeFilter: ['aria-valuenow'] })
+    })
     releaseReport()
-    await expect(progress).toHaveAttribute('aria-valuenow', '100')
+    await expect(page.locator('html')).toHaveAttribute('data-loading-completed', 'true')
     await expect(page.getByRole('heading', { name: 'Detalle de asistencia', exact: true })).toBeVisible()
     await expect(progress).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Ver justificación', exact: true })).toBeVisible()

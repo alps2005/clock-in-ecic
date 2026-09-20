@@ -1,3 +1,4 @@
+import { useAnimatedDismiss } from '../../components/useAnimatedDismiss'
 import { useEffect, useRef, useState } from 'react'
 import QrScanner from 'qr-scanner'
 
@@ -16,6 +17,7 @@ function cameraError(error: unknown): string {
 }
 
 export function Scanner({ onScan, onClose }: { onScan: (payload: string) => void; onClose: () => void }) {
+  const { ref: overlay, dismiss } = useAnimatedDismiss<HTMLDivElement>(onClose)
   const video = useRef<HTMLVideoElement>(null)
   const scanRegion = useRef<HTMLDivElement>(null)
   const closeButton = useRef<HTMLButtonElement>(null)
@@ -71,7 +73,7 @@ export function Scanner({ onScan, onClose }: { onScan: (payload: string) => void
         if (disposed) { acquired.getTracks().forEach(track => track.stop()); return }
         stream = acquired
         scanner = new QrScanner(element!, result => {
-          if (!disposed && !decoded) {
+          if (!disposed && !decoded && overlay.current?.dataset.closing !== 'true') {
             decoded = true
             releaseCamera()
             callback.current(result.data)
@@ -100,9 +102,9 @@ export function Scanner({ onScan, onClose }: { onScan: (payload: string) => void
       releaseCamera()
       previousFocus?.focus()
     }
-  }, [])
-  return <div className="scanner-overlay" role="dialog" aria-modal="true" aria-labelledby="scanner-title" onKeyDown={event => {
-    if (event.key === 'Escape') onClose()
+  }, [overlay])
+  return <div ref={overlay} className="scanner-overlay" role="dialog" aria-modal="true" aria-labelledby="scanner-title" onKeyDown={event => {
+    if (event.key === 'Escape') dismiss()
     if (event.key === 'Tab') {
       const first = closeButton.current
       const last = retryButton.current ?? first
@@ -110,7 +112,7 @@ export function Scanner({ onScan, onClose }: { onScan: (payload: string) => void
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
     }
   }}><div className="scanner-dialog">
-    <div className="section-title"><h2 id="scanner-title">Escanea el código de ECIC</h2><button ref={closeButton} className="button secondary" onClick={onClose}>Cerrar</button></div>
+    <div className="section-title"><h2 id="scanner-title">Escanea el código de ECIC</h2><button ref={closeButton} className="button secondary" onClick={dismiss}>Cerrar</button></div>
     <p>Coloca todo el código QR dentro del recuadro azul y mantén el teléfono quieto. Se registrará automáticamente, sin tocar la pantalla.</p>
     {starting && <p role="status">Abriendo la cámara… Acepta el permiso si aparece.</p>}
     {error && <p className="feedback error" role="alert">{error}</p>}

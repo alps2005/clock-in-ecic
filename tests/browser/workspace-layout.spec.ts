@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { mockBackend, signIn } from './mock.ts'
+import { setTheme, mockBackend, signIn } from './mock.ts'
 
 test('desktop sidebar and frame fill the viewport on short and long pages', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1100 })
@@ -60,7 +60,8 @@ test('admin screens fit desktop and mobile in both themes', async ({ page }, inf
   await page.route('**/rest/v1/rpc/admin_teachers', route => route.fulfill({ json: { total: 1, rows: [{ id: 'fixture', full_name: 'Ana Torres', cedula: '0000000001', active: true, employed_from: '2026-09-01', employed_until: null }] } }))
   await signIn(page)
   for (const theme of ['light', 'dark'] as const) {
-    await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setTheme(page, theme)
     for (const width of [375, 402, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 1000 })
       for (const route of ['/admin', '/admin/docentes', '/admin/avisos']) {

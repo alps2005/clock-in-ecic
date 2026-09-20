@@ -1,3 +1,4 @@
+import { useAnimatedDismiss } from '../../components/useAnimatedDismiss'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { manageTeacher } from '../../lib/api'
@@ -7,6 +8,7 @@ import type { TeacherAccount, TeacherMutation } from '../../types/app'
 export type Editor = { action: TeacherMutation['action']; teacher?: TeacherAccount }
 
 export function TeacherEditor({ editor, schoolDate, close, saved }: { editor: Editor; schoolDate: string; close: () => void; saved: () => void }) {
+  const { ref: panel, dismiss } = useAnimatedDismiss<HTMLElement>(close)
   const { action, teacher } = editor
   const details = action === 'create' || action === 'update'
   const passwordAction = action === 'create' || action === 'reset-password'
@@ -29,7 +31,7 @@ export function TeacherEditor({ editor, schoolDate, close, saved }: { editor: Ed
     catch (failure) { setError(errorMessage(failure)) }
     finally { setPending(false) }
   }
-  return <section className="attendance-card teacher-editor" aria-labelledby="teacher-editor-title"><h2 id="teacher-editor-title">{title}</h2>{teacher && <p>{teacher.full_name} · C.I. {teacher.cedula}</p>}
+  return <section ref={panel} className="attendance-card teacher-editor" aria-labelledby="teacher-editor-title"><h2 id="teacher-editor-title">{title}</h2>{teacher && <p>{teacher.full_name} · C.I. {teacher.cedula}</p>}
     {action === 'disable' && <p>Se bloqueará el inicio de sesión. Podrás permitir el acceso nuevamente desde Editar datos. Su historial de asistencia se conservará.</p>}
     {action === 'delete' && <p>Se eliminará la cuenta de inicio de sesión de forma permanente y finalizará su vinculación. Su historial de asistencia se conservará.</p>}
     <form onSubmit={event => void submit(event)}><fieldset disabled={pending}><div className="teacher-fields">
@@ -37,5 +39,5 @@ export function TeacherEditor({ editor, schoolDate, close, saved }: { editor: Ed
       {action === 'update' && <div><label htmlFor="teacher-until">Último día de vinculación</label><input id="teacher-until" type="date" min={from} value={until} onChange={event => setUntil(event.target.value)} /></div>}
       {action === 'update' && <label className="teacher-checkbox"><input type="checkbox" checked={active} onChange={event => setActive(event.target.checked)} />Permitir acceso</label>}
       {passwordAction && <div><label htmlFor="teacher-password">Nueva contraseña</label><div className="password-field"><input id="teacher-password" type={showPassword ? 'text' : 'password'} required minLength={12} maxLength={256} autoComplete="new-password" value={password} onChange={event => setPassword(event.target.value)} /><button type="button" aria-pressed={showPassword} onClick={() => setShowPassword(v => !v)}>{showPassword ? 'Ocultar' : 'Mostrar'}</button></div><p className="muted">Mínimo 12 caracteres. Entrega la contraseña de forma privada; no podrás consultarla después.</p></div>}
-    </div>{error && <p className="feedback error" role="alert">{error}</p>}<div className="teacher-actions"><button className="button primary" type="submit">{pending ? 'Guardando…' : action === 'disable' ? 'Confirmar bloqueo' : action === 'delete' ? 'Confirmar eliminación de cuenta' : 'Guardar'}</button><button type="button" className="button secondary" onClick={close}>Cancelar</button></div></fieldset></form></section>
+    </div>{error && <p className="feedback error" role="alert">{error}</p>}<div className="teacher-actions"><button className="button primary" type="submit">{pending ? 'Guardando…' : action === 'disable' ? 'Confirmar bloqueo' : action === 'delete' ? 'Confirmar eliminación de cuenta' : 'Guardar'}</button><button type="button" className="button secondary" onClick={dismiss}>Cancelar</button></div></fieldset></form></section>
 }

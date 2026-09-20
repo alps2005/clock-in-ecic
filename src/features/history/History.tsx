@@ -1,8 +1,9 @@
+import { useAnimatedDismiss } from '../../components/useAnimatedDismiss'
 import { usePanelReady } from '../../app/usePanelReady'
 import { trapDialogFocus } from '../../components/dialogFocus'
 import { DatePicker } from '../../components/DatePicker'
 import { historyPresets, rangeError } from '../../lib/historyDates'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ClipboardList, Download, X } from 'lucide-react'
 import type { AppContext, Report, ReportRow } from '../../types/app'
 import { useRemote } from '../../app/useRemote'
@@ -71,10 +72,10 @@ function HistorySummary({ totals }: { totals: Report['totals'] }) {
 }
 
 function JustificationDialog({ row, close }: { row: ReportRow; close: () => void }) {
-  const dialog = useRef<HTMLDialogElement>(null)
-  useEffect(() => { const element = dialog.current!; const trigger = document.activeElement as HTMLElement | null; element.showModal(); return () => { element.close(); trigger?.focus() } }, [])
-  return <dialog ref={dialog} onKeyDown={trapDialogFocus} className="history-dialog" aria-labelledby="justification-title" aria-describedby="justification-description" onCancel={event => { event.preventDefault(); close() }}>
-    <div className="dialog-heading"><h2 id="justification-title">Justificación</h2><button className="icon-button" aria-label="Cerrar justificación" onClick={close} autoFocus><X size={18} /></button></div>
+  const { ref: dialog, dismiss } = useAnimatedDismiss<HTMLDialogElement>(close)
+  useEffect(() => { const element = dialog.current!; const trigger = document.activeElement as HTMLElement | null; element.showModal(); return () => { element.close(); trigger?.focus() } }, [dialog])
+  return <dialog ref={dialog} onKeyDown={trapDialogFocus} className="history-dialog" aria-labelledby="justification-title" aria-describedby="justification-description" onCancel={event => { event.preventDefault(); dismiss() }}>
+    <div className="dialog-heading"><h2 id="justification-title">Justificación</h2><button className="icon-button" aria-label="Cerrar justificación" onClick={dismiss} autoFocus><X size={18} /></button></div>
     <p id="justification-description" className="muted">{row.full_name} · Atraso del {weekday(row.school_date)} {new Intl.DateTimeFormat('es-EC', { timeZone: 'UTC', day: 'numeric', month: 'long' }).format(new Date(`${row.school_date}T12:00Z`))}</p>
     <dl className="justification-details"><div><dt>Entrada</dt><dd>{timeLabel(row.entry_at)}</dd></div><div><dt>Salida</dt><dd>{timeLabel(row.exit_at)}</dd></div><div><dt>Tiempo</dt><dd>{duration(row)}</dd></div><div><dt>Estado</dt><dd><Status row={row} /></dd></div></dl>
     <p className="justification-body">{row.justification}</p>

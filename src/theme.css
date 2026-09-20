@@ -1,0 +1,84 @@
+/* Animate inherited palette tokens once, at the root, instead of restarting
+   color transitions at every level of text and SVG descendants. */
+@property --sidebar { syntax: "<color>"; inherits: true; initial-value: #EEF3F5; }
+@property --background { syntax: "<color>"; inherits: true; initial-value: #FAFBFC; }
+@property --card { syntax: "<color>"; inherits: true; initial-value: #FFFFFF; }
+@property --border { syntax: "<color>"; inherits: true; initial-value: #E1E7EA; }
+@property --foreground { syntax: "<color>"; inherits: true; initial-value: #2B3138; }
+@property --muted-foreground { syntax: "<color>"; inherits: true; initial-value: #65707A; }
+@property --primary { syntax: "<color>"; inherits: true; initial-value: #3B444C; }
+@property --primary-foreground { syntax: "<color>"; inherits: true; initial-value: #FFFFFF; }
+@property --accent { syntax: "<color>"; inherits: true; initial-value: #DCEBF1; }
+@property --accent-border { syntax: "<color>"; inherits: true; initial-value: #C3DFE9; }
+@property --accent-foreground { syntax: "<color>"; inherits: true; initial-value: #276579; }
+@property --ring { syntax: "<color>"; inherits: true; initial-value: #7FB6C8; }
+@property --brand { syntax: "<color>"; inherits: true; initial-value: #4E5A63; }
+@property --success-bg { syntax: "<color>"; inherits: true; initial-value: #E3F2EA; }
+@property --success-fg { syntax: "<color>"; inherits: true; initial-value: #1F6A48; }
+@property --success-dot { syntax: "<color>"; inherits: true; initial-value: #3E9A72; }
+@property --warning-bg { syntax: "<color>"; inherits: true; initial-value: #FBF0DC; }
+@property --warning-fg { syntax: "<color>"; inherits: true; initial-value: #83540A; }
+@property --warning-dot { syntax: "<color>"; inherits: true; initial-value: #D89A2B; }
+@property --danger-bg { syntax: "<color>"; inherits: true; initial-value: #FBE8E6; }
+@property --danger-fg { syntax: "<color>"; inherits: true; initial-value: #A1352C; }
+@property --danger-dot { syntax: "<color>"; inherits: true; initial-value: #D0564B; }
+@property --neutral-bg { syntax: "<color>"; inherits: true; initial-value: #EDF1F3; }
+@property --neutral-fg { syntax: "<color>"; inherits: true; initial-value: #4A535B; }
+
+/* Global palette: available before login, during loading and inside dialogs. */
+:root {
+  --brand-sky: #78C7D4;
+  --sidebar: #EEF3F5; --background: #FAFBFC; --card: #FFFFFF; --border: #E1E7EA;
+  --foreground: #2B3138; --muted-foreground: #65707A; --primary: #3B444C; --primary-foreground: #FFFFFF;
+  --accent: #DCEBF1; --accent-border: #C3DFE9; --accent-foreground: #276579; --ring: #7FB6C8; --brand: #4E5A63;
+  --success-bg: #E3F2EA; --success-fg: #1F6A48; --success-dot: #3E9A72;
+  --warning-bg: #FBF0DC; --warning-fg: #83540A; --warning-dot: #D89A2B;
+  --danger-bg: #FBE8E6; --danger-fg: #A1352C; --danger-dot: #D0564B;
+  --neutral-bg: #EDF1F3; --neutral-fg: #4A535B;
+  --brand-charcoal: var(--foreground); --text-muted: var(--muted-foreground); --surface: var(--card);
+  --surface-page: var(--background); --surface-muted: var(--sidebar); --surface-sky: var(--accent); --border-control: var(--border);
+  --surface-sky-strong: var(--accent); --border-sky: var(--accent-border);
+  --charcoal-hover: var(--primary); --theme-scheme: light; color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --sidebar: #14181B; --background: #181D21; --card: #1E2429; --border: #2A3238;
+  --foreground: #E8EDF0; --muted-foreground: #98A5AF; --accent: #1F3640; --accent-border: #2E4C58;
+  --accent-foreground: #8CCADB; --ring: #6FA9BC; --primary: #E6EBEE; --primary-foreground: #1B2024;
+  --success-bg: #17332A; --success-fg: #8AD1AE; --success-dot: #4FB48A;
+  --warning-bg: #3A2E14; --warning-fg: #F0C674; --warning-dot: #E0AE4E;
+  --danger-bg: #3D1F1D; --danger-fg: #F2A29B; --danger-dot: #E27A70;
+  --neutral-bg: #262E34; --neutral-fg: #B4BFC7;
+  --theme-scheme: dark; color-scheme: dark;
+}
+
+/* Camera previews keep a dark canvas while the video stream opens. */
+.scanner-dialog video { background: #14181B; }
+.teacher-ui .skip-link { background: var(--card); color: var(--foreground); z-index: 50; }
+
+:root[data-theme-animated] {
+  transition: --sidebar 240ms ease,
+    --background 240ms ease,
+    --card 240ms ease,
+    --border 240ms ease,
+    --foreground 240ms ease,
+    --muted-foreground 240ms ease,
+    --primary 240ms ease,
+    --primary-foreground 240ms ease,
+    --accent 240ms ease,
+    --accent-border 240ms ease,
+    --accent-foreground 240ms ease,
+    --ring 240ms ease,
+    --brand 240ms ease,
+    --success-bg 240ms ease,
+    --success-fg 240ms ease,
+    --success-dot 240ms ease,
+    --warning-bg 240ms ease,
+    --warning-fg 240ms ease,
+    --warning-dot 240ms ease,
+    --danger-bg 240ms ease,
+    --danger-fg 240ms ease,
+    --danger-dot 240ms ease,
+    --neutral-bg 240ms ease,
+    --neutral-fg 240ms ease;
+}

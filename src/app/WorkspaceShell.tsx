@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bell, CalendarDays, ClipboardCheck, LogOut, PanelLeft, RefreshCw, Users } from 'lucide-react'
 import { NavLink, useLocation } from 'react-router'
+import { ThemeToggle } from '../components/ThemeToggle'
 import type { AppContext } from '../types/app'
 import { schoolTimezone } from '../lib/attendance'
 
@@ -28,7 +29,7 @@ export function WorkspaceShell({ context, children, logout, loggingOut, logoutEr
   const logoutButton = <button className="button teacher-logout" disabled={loggingOut} onClick={logout}><LogOut size={16} aria-hidden="true" />{loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}</button>
   return <div className={`teacher-ui teacher-shell${admin ? ' admin-ui' : ''}${collapsed ? ' sidebar-collapsed' : ''}`}>
     <a className="skip-link" href="#main">Ir al contenido</a>
-    <aside className="teacher-sidebar" aria-label="Barra lateral">
+    <aside inert={collapsed} className="teacher-sidebar" aria-label="Barra lateral">
       <div className="teacher-brand"><img src="/favicon.svg" width="36" height="36" alt="" /><div><strong>ECIC Clock-in</strong><small>Gestión de personal docente</small></div></div>
       <p className="teacher-menu-label">Menú</p><nav aria-label="Navegación principal" onClick={() => setRefreshing(false)}>{nav}</nav>
       <div className="teacher-sidebar-footer">{identity}{logoutButton}{logoutError && <p role="alert">{logoutError}</p>}</div>
@@ -38,6 +39,7 @@ export function WorkspaceShell({ context, children, logout, loggingOut, logoutEr
         <div className="teacher-desktop-title"><button className="icon-button" onClick={toggle} aria-label="Alternar barra lateral" aria-expanded={!collapsed}><PanelLeft size={18} /></button><span className="topbar-separator" /><span>{admin ? location.pathname.startsWith('/admin/docentes') ? 'Docentes' : location.pathname === '/admin/avisos' ? 'Notificaciones' : 'Asistencia docente' : location.pathname === '/historial' ? 'Mi historial' : 'Mi jornada'}</span></div>
         <div className="teacher-mobile-brand"><img src="/favicon.svg" width="28" height="28" alt="" /><strong>ECIC Clock-in</strong></div>
         <time className="teacher-date" dateTime={now.toISOString()}>{new Intl.DateTimeFormat('es-EC', { timeZone: schoolTimezone, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now)}</time>
+        <ThemeToggle />
         <button className="icon-button" aria-label="Actualizar datos" disabled={refreshing} onClick={() => { setRefreshing(true); setToast(''); window.dispatchEvent(new Event('ecic-refresh')) }}><RefreshCw className={refreshing ? 'refreshing' : ''} size={18} /></button>
         <button className="teacher-avatar teacher-account-toggle" popoverTarget="teacher-account" aria-label="Abrir menú de cuenta">{context.profile.full_name[0]}</button>
         <div ref={account} id="teacher-account" popover="auto" className="teacher-account">{identity}{logoutButton}{logoutError && <p role="alert">{logoutError}</p>}</div>

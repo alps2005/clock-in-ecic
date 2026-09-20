@@ -1,5 +1,6 @@
+import { useAnimatedDismiss } from '../../components/useAnimatedDismiss'
 import { notify } from '../../app/usePageRefresh'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Download, FileSpreadsheet, X } from 'lucide-react'
 import { useRemote } from '../../app/useRemote'
 import { Failure } from '../../components/Feedback'
@@ -9,7 +10,7 @@ import { dateLabel } from '../../lib/attendance'
 import { downloadBlob, excelBlob, exportTable, loadWeeklyRows, tableCsv } from '../../lib/attendanceExport'
 
 export function ExportModal({ admin, close }: { admin: boolean; close: () => void }) {
-  const dialog = useRef<HTMLDialogElement>(null)
+  const { ref: dialog, dismiss } = useAnimatedDismiss<HTMLDialogElement>(close)
   const [downloading, setDownloading] = useState(false)
   const [downloadError, setDownloadError] = useState('')
   const load = useCallback(async () => {
@@ -30,7 +31,7 @@ export function ExportModal({ admin, close }: { admin: boolean; close: () => voi
       document.body.style.overflow = overflow
       previousFocus?.focus()
     }
-  }, [])
+  }, [dialog])
 
   async function download(format: 'csv' | 'xlsx') {
     if (!result.data || downloading) return
@@ -47,15 +48,15 @@ export function ExportModal({ admin, close }: { admin: boolean; close: () => voi
     } finally { setDownloading(false) }
   }
 
-  return <dialog ref={dialog} className="export-dialog" aria-labelledby="export-title" aria-describedby="export-description" onCancel={event => { event.preventDefault(); close() }} onClick={event => {
+  return <dialog ref={dialog} className="export-dialog" aria-labelledby="export-title" aria-describedby="export-description" onCancel={event => { event.preventDefault(); dismiss() }} onClick={event => {
     if (event.target === event.currentTarget) {
       const bounds = event.currentTarget.getBoundingClientRect()
-      if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) close()
+      if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dismiss()
     }
   }}>
     <div className="export-heading">
       <div><p className="eyebrow">{admin ? 'EXPORTAR ASISTENCIA' : 'Exportar asistencia'}</p><h2 id="export-title">Asistencia de esta semana</h2></div>
-      <button type="button" className="ecic-ghost-button" aria-label="Cerrar exportación" onClick={close} autoFocus><X size={18} aria-hidden="true" /></button>
+      <button type="button" className="ecic-ghost-button" aria-label="Cerrar exportación" onClick={dismiss} autoFocus><X size={18} aria-hidden="true" /></button>
     </div>
     <p id="export-description" className="export-description">De lunes a viernes · {admin ? 'Todos los docentes' : 'Mis registros'} · Hora de Ecuador (UTC-5).</p>
     {result.loading ? <PanelPlaceholder label="Cargando vista previa" variant="table" /> : result.error ? <Failure error={result.error} retry={result.refresh} /> : result.data && <>

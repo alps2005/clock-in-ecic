@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { mockBackend, signIn } from './mock.ts'
+import { setTheme, mockBackend, signIn } from './mock.ts'
 
 test.use({ timezoneId: 'Asia/Tokyo' })
 
@@ -82,11 +82,13 @@ test('both pages fit all required widths in both themes without runtime errors',
   await mockBackend(page)
   await signIn(page)
   for (const theme of ['light', 'dark'] as const) {
-    await page.emulateMedia({ colorScheme: theme, reducedMotion: 'reduce' })
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await setTheme(page, theme)
     for (const width of [375, 402, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 })
       for (const route of ['jornada', 'historial']) {
         await page.goto(`/${route}`)
+        await expect(page.locator('.teacher-shell')).toBeVisible()
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
         if (route === 'historial') await expect(page.getByRole('heading', { name: 'Detalle de asistencia', exact: true })).toBeVisible()
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)

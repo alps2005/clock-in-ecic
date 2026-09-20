@@ -1,0 +1,66 @@
+:root {
+  --ease-soft: cubic-bezier(.22, 1, .36, 1);
+  --palette-transition: box-shadow 160ms ease;
+}
+html, body, .teacher-ui, .teacher-ui *, .teacher-ui *::before, .teacher-ui *::after {
+  transition: var(--palette-transition);
+}
+.teacher-ui .theme-toggle { width: 40px; height: 40px; border: 1px solid var(--border); background: var(--background); color: var(--accent-foreground); }
+.theme-toggle-icon { display: grid; place-items: center; }
+.theme-toggle-icon > svg { grid-area: 1 / 1; }
+.theme-toggle-sun { opacity: 0; transform: rotate(-30deg) scale(.85); }
+.theme-toggle-moon { opacity: 1; transform: none; }
+:root[data-theme="dark"] .theme-toggle-sun { opacity: 1; transform: none; }
+:root[data-theme="dark"] .theme-toggle-moon { opacity: 0; transform: rotate(30deg) scale(.85); }
+:root[data-theme-animated] .theme-toggle-icon > svg { transition: opacity 240ms ease, transform 240ms var(--ease-soft); }
+.teacher-ui button { transition: var(--palette-transition), scale 160ms var(--ease-soft); }
+.teacher-ui button:active:enabled { scale: .97; }
+.teacher-ui .loading-progress span { transition: var(--palette-transition), width .12s linear; }
+.teacher-ui .summary-bar > span { transition: var(--palette-transition), width 350ms var(--ease-soft); }
+
+/* Fixed-width sidebar contents move with the grid instead of wrapping as it shrinks. */
+@media (min-width: 901px) {
+  .teacher-shell { transition: var(--palette-transition), grid-template-columns 360ms var(--ease-soft); }
+  .teacher-sidebar { width: 256px; overflow-x: hidden; clip-path: inset(0); transition: var(--palette-transition), transform 360ms var(--ease-soft), opacity 240ms ease, visibility 0s; }
+  .teacher-frame { position: relative; transition: var(--palette-transition), margin-left 360ms var(--ease-soft); }
+  .sidebar-collapsed .teacher-sidebar { transform: translateX(-24px); opacity: 0; visibility: hidden; transition: var(--palette-transition), transform 360ms var(--ease-soft), opacity 240ms ease, visibility 0s 360ms; }
+}
+
+/* Entrances finish without retaining transforms, so fixed overlays stay viewport-bound. */
+.teacher-content-inner > :not(dialog):not(.scanner-overlay), .teacher-editor, .attendance-actions .action-block,
+.teacher-ui .feedback, .teacher-ui .filter-error, .teacher-ui .toast, .teacher-ui .empty-state,
+.teacher-ui .history-desktop-table, .teacher-ui .history-mobile-list, .teacher-ui .scanner-dialog {
+  animation: soft-reveal 280ms var(--ease-soft);
+}
+.teacher-ui dialog[open] { animation: dialog-in 260ms var(--ease-soft); }
+.teacher-ui dialog[open]::backdrop, .scanner-overlay { animation: fade-in 240ms ease; }
+.teacher-ui dialog[data-closing=true] { animation: dialog-out 180ms ease forwards; }
+.teacher-ui dialog[data-closing=true]::backdrop, .scanner-overlay[data-closing=true] { animation: fade-out 180ms ease forwards; }
+.teacher-editor[data-closing=true], .scanner-overlay[data-closing=true] .scanner-dialog { animation: dialog-out 180ms ease forwards; }
+
+/* Native popovers retain their top-layer position during light-dismiss transitions. */
+.teacher-ui .teacher-account {
+  opacity: 0; transform: translateY(-6px) scale(.98); transform-origin: top right;
+  transition: var(--palette-transition), opacity 180ms ease, transform 220ms var(--ease-soft), display 220ms allow-discrete, overlay 220ms allow-discrete;
+}
+.teacher-ui .teacher-account:popover-open { opacity: 1; transform: none; }
+@starting-style { .teacher-ui .teacher-account:popover-open { opacity: 0; transform: translateY(-6px) scale(.98); } }
+
+@keyframes soft-reveal { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes dialog-out { to { opacity: 0; transform: translateY(8px) scale(.98); } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { to { opacity: 0; } }
+@media (max-width: 900px) {
+  .teacher-ui .history-dialog[open] { animation-name: sheet-in; }
+  .teacher-ui .history-dialog[data-closing=true] { animation-name: sheet-out; }
+}
+@keyframes sheet-in { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: none; } }
+@keyframes sheet-out { to { opacity: 0; transform: translateY(24px); } }
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme-animated] { transition: none !important; }
+  html, body, .teacher-ui, .teacher-ui *, .teacher-ui *::before, .teacher-ui *::after, .teacher-ui dialog::backdrop {
+    animation: none !important; transition: none !important; scroll-behavior: auto !important;
+  }
+  .teacher-ui button:active:enabled { scale: 1; }
+}
