@@ -30,7 +30,7 @@ export function TeacherEditor({ editor, schoolDate, close, saved }: { editor: Ed
     finally { setPending(false) }
   }
   return <section className="attendance-card teacher-editor" aria-labelledby="teacher-editor-title"><h2 id="teacher-editor-title">{title}</h2>{teacher && <p>{teacher.full_name} · C.I. {teacher.cedula}</p>}
-    {action === 'disable' && <p>Se bloqueará el inicio de sesión. Podrás permitir el acceso nuevamente desde Editar docente. Su historial de asistencia se conservará.</p>}
+    {action === 'disable' && <p>Se bloqueará el inicio de sesión. Podrás permitir el acceso nuevamente desde Editar datos. Su historial de asistencia se conservará.</p>}
     {action === 'delete' && <p>Se eliminará la cuenta de inicio de sesión de forma permanente y finalizará su vinculación. Su historial de asistencia se conservará.</p>}
     <form onSubmit={event => void submit(event)}><fieldset disabled={pending}><div className="teacher-fields">
       {details && <><div><label htmlFor="teacher-name">Nombre completo</label><input id="teacher-name" required minLength={2} maxLength={120} value={name} onChange={event => setName(event.target.value)} /></div><div><label htmlFor="teacher-cedula">C.I.</label><input id="teacher-cedula" required pattern="[0-9]{10}" inputMode="numeric" maxLength={10} value={cedula} onChange={event => setCedula(event.target.value.replace(/\D/g, ''))} /></div><div><label htmlFor="teacher-from">Fecha de vinculación</label><input id="teacher-from" type="date" required value={from} onChange={event => setFrom(event.target.value)} /></div></>}

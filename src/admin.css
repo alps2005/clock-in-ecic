@@ -31,7 +31,6 @@
 .admin-ui .badge.green { background: var(--success-bg); color: var(--success-fg); }
 .admin-ui .badge.amber, .admin-ui .notification-icon { background: var(--warning-bg); color: var(--warning-fg); }
 .admin-ui .teacher-icon { background: var(--accent); color: var(--accent-foreground); border: 1px solid var(--accent-border); border-radius: 8px; }
-.admin-ui .lock-icon { background: var(--neutral-bg); color: var(--neutral-fg); border-color: var(--border); }
 .admin-ui .teacher-icon:hover { background: var(--neutral-bg); }
 .admin-ui .danger-text { color: var(--danger-fg); }
 .admin-ui .pager { padding-top: 16px; border-top: 1px solid var(--border); }
@@ -51,6 +50,13 @@
   .admin-ui .report-card, .admin-ui .teacher-editor, .admin-ui .filter-bar { padding: 16px; }
   .admin-ui .teacher-fields { grid-template-columns: 1fr; }
 }
+.directory-entry { position: relative; }
+.directory-entry:hover, .directory-entry:focus-within { background: var(--neutral-bg); }
+.directory-profile-link { color: inherit; text-decoration: none; }
+/* Extend the profile link across the row/card while keeping edit independently clickable. */
+.directory-profile-link::after { content: ''; position: absolute; inset: 0; }
+.directory-profile-link:focus-visible::after { outline: 2px solid var(--accent-foreground); outline-offset: -2px; }
+.directory-entry .teacher-icon { position: relative; z-index: 1; }
 .directory-mobile-list { display: none; }
 @media (max-width: 900px) {
   .admin-ui .directory-table { display: none; }

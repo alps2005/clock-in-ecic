@@ -311,9 +311,7 @@ input, textarea { width: 100%; border: 1px solid var(--border-control); backgrou
 .teachers-search .button { flex: 0 0 auto; width: auto; min-width: 0; }
 .teacher-row-actions { display: flex; gap: 8px; }
 .teacher-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 44px; width: 44px; height: 44px; border: 1px solid currentColor; border-radius: 10px; cursor: pointer; }
-.teacher-icon.history-icon { color: #1769c2; background: #eff6ff; }
 .teacher-icon.edit-icon { color: #a66b00; background: #fff8cf; }
-.teacher-icon.lock-icon { color: #c42b35; background: #fff1f2; }
 .teacher-icon:hover:not(:disabled) { filter: brightness(0.94); }
 .teacher-icon:disabled { opacity: 0.45; cursor: not-allowed; }
 .teacher-back { margin-bottom: 22px; }
