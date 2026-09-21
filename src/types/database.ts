@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       attendance_events: {
@@ -134,34 +159,37 @@ export type Database = {
           account_deleted_at: string | null
           active: boolean
           auth_user_id: string | null
-          cedula: string
+          cedula: string | null
           created_at: string
           full_name: string
           id: string
           role: string
           session_version: number
+          username: string | null
         }
         Insert: {
           account_deleted_at?: string | null
           active?: boolean
           auth_user_id?: string | null
-          cedula: string
+          cedula?: string | null
           created_at?: string
           full_name: string
           id?: string
-          role: string
+          role?: string
           session_version?: number
+          username?: string | null
         }
         Update: {
           account_deleted_at?: string | null
           active?: boolean
           auth_user_id?: string | null
-          cedula?: string
+          cedula?: string | null
           created_at?: string
           full_name?: string
           id?: string
           role?: string
           session_version?: number
+          username?: string | null
         }
         Relationships: []
       }
@@ -211,10 +239,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_teacher: { Args: { p_id: string }; Returns: Json }
-      admin_teacher_report: { Args: { p_id: string; p_from: string; p_to: string; p_page?: number }; Returns: Json }
-      admin_sidebar_counts: { Args: Record<PropertyKey, never>; Returns: Json }
-      finish_teacher_delete: { Args: { p_key: string; p_token: string; p_id: string; p_version: number }; Returns: undefined }
       activate_profile: {
         Args: {
           p_auth_user_id: string
@@ -224,6 +248,12 @@ export type Database = {
         Returns: undefined
       }
       admin_notifications: { Args: { p_page?: number }; Returns: Json }
+      admin_sidebar_counts: { Args: never; Returns: Json }
+      admin_teacher: { Args: { p_id: string }; Returns: Json }
+      admin_teacher_report: {
+        Args: { p_from: string; p_id: string; p_page?: number; p_to: string }
+        Returns: Json
+      }
       admin_teachers: {
         Args: { p_page?: number; p_search?: string }
         Returns: Json
@@ -251,8 +281,18 @@ export type Database = {
           p_full_name: string
           p_id: string
           p_key: string
+          p_role?: string
           p_token: string
           p_until: string
+          p_version: number
+        }
+        Returns: undefined
+      }
+      finish_teacher_delete: {
+        Args: {
+          p_id: string
+          p_key: string
+          p_token: string
           p_version: number
         }
         Returns: undefined
@@ -401,6 +441,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

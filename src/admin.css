@@ -9,7 +9,7 @@
 .admin-ui .teacher-content-inner > * { min-width: 0; }
 .admin-ui .teacher-fields { margin-top: 16px; }
 .admin-ui label { margin: 0 0 6px; font-size: 13px; font-weight: 500; }
-.admin-ui input { min-height: 40px; border-color: var(--border); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+.admin-ui input, .admin-ui select { min-height: 40px; border-color: var(--border); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
 .admin-ui .password-field input { padding-right: 82px; }
 .admin-ui .teacher-editor h2 { margin-bottom: 6px; }
 .admin-ui .teacher-editor p { color: var(--muted-foreground); font-size: 13px; }

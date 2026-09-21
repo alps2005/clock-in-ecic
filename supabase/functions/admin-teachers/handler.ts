@@ -1,5 +1,7 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 
+const staffRoles = ['teacher', 'substitute_teacher', 'secretary', 'academic_coordinator', 'vice_principal', 'principal']
+
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Cache-Control': 'no-store' }
 const reply = (body: object, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 const validDate = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v)) && new Date(v).toISOString().slice(0, 10) === v
@@ -34,7 +36,7 @@ export async function handleTeacherAdmin(request: Request, caller: SupabaseClien
     if (!input || typeof input !== 'object' || Array.isArray(input)) return reply({ error: 'INVALID_REQUEST' }, 400)
     const action = input.action
     if (!['create', 'update', 'reset-password', 'disable', 'delete'].includes(String(action))) return reply({ error: 'INVALID_REQUEST' }, 400)
-    if (input.role !== undefined) return reply({ error: 'INVALID_REQUEST' }, 400)
+    if (input.role !== undefined && (!['create', 'update'].includes(String(action)) || !staffRoles.includes(String(input.role)))) return reply({ error: 'INVALID_REQUEST' }, 400)
     if (action !== 'create' && (typeof input.id !== 'string' || !/^[0-9a-f-]{36}$/i.test(input.id))) return reply({ error: 'INVALID_REQUEST' }, 400)
     if (action === 'create' || action === 'update') {
       if (typeof input.cedula !== 'string' || !/^\d{10}$/.test(input.cedula) || typeof input.full_name !== 'string' || input.full_name.trim().length < 2 || input.full_name.trim().length > 120 || !validDate(input.employed_from)) return reply({ error: 'INVALID_REQUEST' }, 400)
@@ -46,10 +48,10 @@ export async function handleTeacherAdmin(request: Request, caller: SupabaseClien
     lockToken = check(await service.rpc('lock_teacher_admin', { p_key: lockKey })) as string
     let profile = check(await service.from('profiles').select('*').eq(action === 'create' ? 'cedula' : 'id', action === 'create' ? input.cedula : input.id).maybeSingle())
     if (action === 'create') {
-      if (profile && (profile.active || profile.role !== 'teacher' || profile.auth_user_id || profile.full_name !== String(input.full_name).trim())) throw new Error('ACCOUNT_EXISTS')
-      if (!profile) profile = check(await service.from('profiles').insert({ cedula: input.cedula, full_name: String(input.full_name).trim(), role: 'teacher', active: false }).select().single())
+      if (profile && (profile.active || profile.role !== (input.role ?? 'teacher') || profile.auth_user_id || profile.full_name !== String(input.full_name).trim())) throw new Error('ACCOUNT_EXISTS')
+      if (!profile) profile = check(await service.from('profiles').insert({ cedula: input.cedula, full_name: String(input.full_name).trim(), role: input.role ?? 'teacher', active: false }).select().single())
     }
-    if (!profile || profile.role !== 'teacher') throw new Error('TEACHER_NOT_FOUND')
+    if (!profile || !staffRoles.includes(profile.role)) throw new Error('TEACHER_NOT_FOUND')
     // Also serialize a resumed creation against edits to its now-visible pending profile.
     if (action !== 'create' && action !== 'delete' && !profile.auth_user_id) throw new Error('ACCOUNT_PENDING')
     if (action === 'disable') {
@@ -117,7 +119,7 @@ export async function handleTeacherAdmin(request: Request, caller: SupabaseClien
       ban_duration: active ? 'none' : '876000h',
       app_metadata: { ...user.app_metadata, ecic_profile_id: profile.id, ecic_session_version: version },
     }))
-    check(await service.rpc('finish_teacher_admin', { p_key: lockKey, p_token: lockToken, p_id: profile.id, p_version: version, p_auth_id: user.id, p_full_name: fullName, p_cedula: cedula, p_from: from, p_until: until, p_active: active }))
+    check(await service.rpc('finish_teacher_admin', { p_key: lockKey, p_token: lockToken, p_id: profile.id, p_version: version, p_auth_id: user.id, p_full_name: fullName, p_cedula: cedula, p_from: from, p_until: until, p_active: active, p_role: input.role ?? profile.role }))
     return reply({ ok: true, id: profile.id })
   } catch (error) {
     // Never return API bodies, identities, tokens, or passwords to the client/logs.

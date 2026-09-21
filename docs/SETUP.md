@@ -101,7 +101,7 @@ message from `check:connection` points to `.env.local`, not the generated TypeSc
 ## 4. Configure Auth
 
 Disable public signup and anonymous sign-ins in the Supabase dashboard. Enable email/password Auth
-only; the app internally maps the selected cédula login to `<cedula>@login.clock-in.invalid`.
+only; staff cédulas map to `<cedula>@login.clock-in.invalid`, and administrator usernames map to `<lowercase-username>@admin.clock-in.invalid`.
 The alias is not a real mailbox. Accounts must be created by the trusted script below so their
 identity/profile link and session-version metadata agree. Do not use public signup or email recovery.
 
@@ -111,7 +111,7 @@ is handled by the administrator. Use a password minimum of 12 characters to matc
 
 ### Administrator MFA
 
-Administrators must use a TOTP authenticator. Teacher sign-in remains cédula/password only.
+Administrators must use a TOTP authenticator. All non-admin roles retain cédula/password sign-in. Administrators use the separate `/admin/login` username form.
 The first administrator sign-in offers a QR and manual setup key; a valid six-digit code completes
 enrollment and unlocks the workspace. Subsequent password sign-ins require another code.
 An already verified session can survive reloads until Supabase invalidates or downgrades it.
@@ -235,6 +235,20 @@ Check partially created resources in Supabase before changing input or deleting 
 
 Deliver fresh credentials privately and remove the temporary password input when no longer needed.
 No password is printed by the CLI. Keep operational accounts separate from any disposable test users.
+
+### Roles and username administrators
+
+Staff inputs accept `teacher`, `substitute_teacher`, `secretary`, `academic_coordinator`,
+`vice_principal`, or `principal`, and require `cedula` and `employed_from`. Each role has
+personal attendance and history access. The administrator account editor offers these roles.
+
+For trusted administrator provisioning, set `role` to `admin`, provide `username`,
+`full_name`, `password`, and `project_url`, and omit `cedula` and employment dates.
+Usernames contain 3–64 letters, digits, or underscores and begin with a letter; they are
+case-insensitive. Use the same `provision` command above. Reset/disable inputs identify
+these administrators by `username` instead of `cedula`. Their sign-in page is `/admin/login`,
+linked as **Entrar como administrador**. First login requires TOTP setup by the operator.
+No administrator credentials belong in migrations, frontend configuration, or source files.
 
 ### Reset a forgotten password
 

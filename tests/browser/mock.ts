@@ -1,10 +1,10 @@
 import type { Page } from '@playwright/test'
 import type { AppContext, AttendanceEvent, Report, ReportRow } from '../../src/types/app.ts'
 
-export async function mockBackend(page: Page, options: { role?: 'teacher' | 'admin'; schoolDate?: string; time?: string; uncertain?: boolean; events?: AttendanceEvent[]; mfa?: 'enroll' | 'verify' | 'stale' } = {}) {
+export async function mockBackend(page: Page, options: { role?: AppContext['profile']['role']; schoolDate?: string; time?: string; uncertain?: boolean; events?: AttendanceEvent[]; mfa?: 'enroll' | 'verify' | 'stale' } = {}) {
   const role = options.role ?? 'teacher'
-  const userId = role === 'teacher' ? '10000000-0000-0000-0000-000000000001' : '10000000-0000-0000-0000-000000000003'
-  const profileId = role === 'teacher' ? '20000000-0000-0000-0000-000000000001' : '20000000-0000-0000-0000-000000000003'
+  const userId = role !== 'admin' ? '10000000-0000-0000-0000-000000000001' : '10000000-0000-0000-0000-000000000003'
+  const profileId = role !== 'admin' ? '20000000-0000-0000-0000-000000000001' : '20000000-0000-0000-0000-000000000003'
   const events: AttendanceEvent[] = [...(options.events ?? [])]
   const requests: Record<string, unknown>[] = []
   const protectedRequests: string[] = []
@@ -59,7 +59,7 @@ export async function mockBackend(page: Page, options: { role?: 'teacher' | 'adm
       if (role === 'admin' && claims.aal !== 'aal2') return json({ message: 'MFA_REQUIRED', code: 'P0001' }, 400)
     }
     if (url.pathname.endsWith('/app_context')) {
-      const context: AppContext = { profile: { id: profileId, auth_user_id: userId, cedula: '0000000001', full_name: role === 'teacher' ? 'Ana Torres' : 'Administración ECIC', role, active: true }, server_time: serverTime, school_date: schoolDate, working_day: true, policy: { id: 'policy', timezone: 'America/Guayaquil', weekdays: [1,2,3,4,5], entry_opens: '06:00:00', entry_closes: '06:40:00', exit_opens: '12:40:00', exit_closes: '13:30:00' }, events }
+      const context: AppContext = { profile: { id: profileId, auth_user_id: userId, cedula: '0000000001', full_name: role !== 'admin' ? 'Ana Torres' : 'Administración ECIC', role, active: true }, server_time: serverTime, school_date: schoolDate, working_day: true, policy: { id: 'policy', timezone: 'America/Guayaquil', weekdays: [1,2,3,4,5], entry_opens: '06:00:00', entry_closes: '06:40:00', exit_opens: '12:40:00', exit_closes: '13:30:00' }, events }
       return json(context)
     }
     if (url.pathname.endsWith('/record_attendance')) {

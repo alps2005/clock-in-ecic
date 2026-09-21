@@ -145,3 +145,16 @@ test('blocking verifies identity, detects concurrent changes, and keeps access r
     }
   }
 })
+
+test('staff roles cannot call management and administrators cannot create elevated roles through staff management', async () => {
+  for (const role of ['substitute_teacher', 'secretary', 'academic_coordinator', 'vice_principal', 'principal', 'admin']) {
+    let privileged = 0
+    const caller = createClient('https://fixture.invalid', 'public-key', { auth: { persistSession: false }, global: { fetch: async input => {
+      return Response.json(new URL(String(input)).pathname === '/auth/v1/user' ? { id: 'user-id' } : { profile: { role, auth_user_id: 'user-id' } })
+    } } })
+    const service = createClient('https://fixture.invalid', 'service-key', { auth: { persistSession: false }, global: { fetch: async () => { privileged++; throw new Error('Unexpected privileged request') } } })
+    const response = await handleTeacherAdmin(new Request('https://fixture.invalid/admin-teachers', { method: 'POST', headers: { Authorization: adminAuthorization }, body: JSON.stringify({ action: 'create', role: 'admin' }) }), caller, service)
+    assert.equal(response.status, role === 'admin' ? 400 : 403)
+    assert.equal(privileged, 0)
+  }
+})

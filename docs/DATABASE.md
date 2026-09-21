@@ -7,7 +7,7 @@ is effective from its installation date in Ecuador. No operational users/events/
 
 | Table | Ownership and constraints |
 | --- | --- |
-| `profiles` | Stable UUID; nullable unique Auth UUID; unique 10-digit text cédula; trusted teacher/admin role, activation and session version. Auth deletion sets the link null. |
+| `profiles` | Stable UUID; nullable unique Auth UUID; unique 10-digit text cédula for staff or case-insensitive unique username for administrators; trusted account role, activation and session version. Auth deletion sets the link null. |
 | `teachers` | Profile PK/FK; inclusive employment dates. Referenced teachers cannot be deleted while attendance exists. |
 | `attendance_policies` | Non-overlapping date ranges, Ecuador timezone, weekdays and ordered entry/exit windows. Rules referenced by events cannot be changed or have their dates excluded. |
 | `school_holidays` | Explicit nonworking school dates; initially empty. |
@@ -19,10 +19,16 @@ Use activation to suspend access; use employment end dates to stop future report
 Account unlinking/deletion never cascades into operational history. Take backups before any trusted
 maintenance. Do not manually change historical employment dates or holidays to hide existing records.
 
+The user-account table is `profiles`, separate from Supabase `auth.users`. Its existing
+`role` column accepts `admin`, `teacher`, `substitute_teacher`, `secretary`,
+`academic_coordinator`, `vice_principal`, and `principal`. `teachers` is the attendance
+eligibility table for every non-admin role. All report scoping uses `role <> 'admin'`.
+Directory/detail RPCs return the role, and `finish_teacher_admin` accepts optional `p_role`.
+
 ## Authorization
 
 RLS is enabled on every table, including the private token table. Anonymous browser table access
-and attendance writes are denied. Teachers can select only their own profile, teacher and event rows;
+and attendance writes are denied. All non-admin roles can select only their own profile, teacher and event rows;
 admins can read all three. Both require activation and a matching trusted session-version claim.
 Administrators also require the signed JWT's top-level `aal` claim to be `aal2` for all three tables,
 including their own profile. Missing/invalid assurance claims deny access. Role selection never reads
@@ -40,7 +46,7 @@ Postgres columns and RPC arguments; `src/types/app.ts` describes the JSON respon
 Every browser RPC calls `private.caller()`, which rejects administrators without `aal2` with
 `MFA_REQUIRED` after validating the active profile and session version. This includes `app_context`:
 no administrator workspace data is returned before MFA. The UI uses that error to offer TOTP enrollment
-or verification through Supabase Auth. Teachers do not require MFA.
+or verification through Supabase Auth. Non-admin roles do not require MFA.
 The `admin-teachers` Edge Function checks this RPC and independently requires `aal2` in the same
 bearer token already validated by Supabase Auth before making any service-role call.
 
@@ -127,7 +133,7 @@ No cron task is needed. Notices remain available as part of attendance history; 
 Administrator-only directory with 25 rows per page and a total over all matching teachers.
 Each row includes stable ID, name, C.I., access state and employment dates. It returns no passwords.
 The `admin-teachers` Edge Function accepts `create`, `update`, `reset-password`, and `disable` actions,
-authenticates the caller through Auth and `app_context()`, and limits mutations to teacher profiles.
+authenticates the caller through Auth and `app_context()`, and limits mutations to non-admin profiles. Create/update accept one of the six staff roles; the service-only finalization RPC also rejects promotion to admin.
 Account deletion means access removal, with retained attendance. Name/C.I. edits also update the Auth
 login alias; password resets and edits revoke existing application sessions.
 

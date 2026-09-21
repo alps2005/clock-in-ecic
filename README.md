@@ -1,11 +1,11 @@
 # Clock-in ECIC
 
 New teacher attendance app built with React, TypeScript, Vite, Tailwind and Supabase.
-Spanish interface, cédula/password login, school QR attendance, personal history and admin reports.
+Spanish interface, cédula/password staff login, separate username/password administrator login, school QR attendance, personal history and admin reports.
 Administrators manage teacher accounts and receive in-app notices for missed entry/exit windows.
 Administrators must enroll an authenticator and verify a six-digit code after password sign-in.
 RPCs, direct database reads, and teacher-management operations require an MFA-verified session.
-Both roles share a full-height desktop workspace and mobile navigation. Light mode is the default; the sun/moon button in the header switches palettes and remembers the choice across login, loading, dialogs, and subsequent visits. Theme changes sync between tabs. Sidebar sweeps, panel entrances, and dialog transitions respect the device’s reduced-motion preference.
+All roles share a full-height desktop workspace and mobile navigation. Light mode is the default; the sun/moon button in the header switches palettes and remembers the choice across login, loading, dialogs, and subsequent visits. Theme changes sync between tabs. Sidebar sweeps, panel entrances, and dialog transitions respect the device’s reduced-motion preference.
 Report presets use the server's Ecuador school date: “Esta semana” follows Monday–Friday,
 including when the week changes while the page is open. Custom date ranges stay unchanged.
 
@@ -13,6 +13,19 @@ including when the week changes while the page is open. Custom date ranges stay 
 - Entry QR: **06:00–06:40**. Afterwards, a justification of up to **250 words** records a late arrival.
 - Exit QR: **12:40–13:30**. An unmatched entry after closing produces **Salida no registrada** and an admin dashboard notice.
 - Fresh accounts and database. No old data or application behavior is imported.
+
+## Account roles and login
+
+The existing `profiles.role` column supports `admin`, `teacher`, `substitute_teacher`,
+`secretary`, `academic_coordinator`, `vice_principal`, and `principal`. All non-admin roles
+use the attendance workspace and must record entry and exit. Principals display **Director**.
+Only administrators have institution-wide access; they do not mark attendance.
+
+The login page links **Entrar como administrador** to `/admin/login`. Administrator usernames
+are case-insensitive and use a separate Auth identity namespace from staff cédulas. Passwords
+are stored by Supabase Auth, never in frontend source. Administrator MFA remains mandatory.
+The account editor supports all six staff roles; trusted operator provisioning creates admins.
+Apply `202609210002_account_roles.sql` and deploy `admin-teachers` before the frontend.
 
 ## Teacher administration
 

@@ -3,6 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import { randomBytes, randomUUID } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 import QRCode from 'qrcode'
+import { adminLoginIdentity, validAdminUsername, roleLabels } from '../src/lib/roles.ts'
 import { loginIdentity, validCedula } from '../src/lib/attendance.ts'
 
 const [command, inputPath] = process.argv.slice(2)
@@ -31,16 +32,18 @@ try {
     check(await client.rpc('configure_checkpoint', { p_id: id, p_label: input.label, p_payload: payload }))
     console.log(`Checkpoint ready. ID: ${id}. Print the private SVG. Save the ID to rotate this checkpoint later.`)
   } else {
-    if (!validCedula(input.cedula ?? '')) throw new Error('Cédula must be a string of 10 digits; verify the actual document with the administrator.')
-    const email = loginIdentity(input.cedula)
-    let profile = check(await client.from('profiles').select('*').eq('cedula',input.cedula).maybeSingle())
+    const username = typeof input.username === 'string' ? input.username.trim().toLowerCase() : null
+    if (username ? !validAdminUsername(username) : !validCedula(input.cedula ?? '')) throw new Error('Cédula must be a string of 10 digits; verify the actual document with the administrator.')
+    const email = username ? adminLoginIdentity(username) : loginIdentity(input.cedula)
+    let profile = check(await client.from('profiles').select('*').eq(username ? 'username' : 'cedula', username ?? input.cedula).maybeSingle())
     if (command === 'provision') {
-      if (!['teacher','admin'].includes(input.role) || typeof input.full_name !== 'string' || input.full_name.trim().length < 2) throw new Error('Provide role and full_name.')
+      if (!Object.hasOwn(roleLabels, input.role) || typeof input.full_name !== 'string' || input.full_name.trim().length < 2) throw new Error('Provide role and full_name.')
+      if ((input.role === 'admin') !== Boolean(username)) throw new Error('Provision administrators with username; provide cedula for staff.')
       if (typeof input.password !== 'string' || input.password.length < 12) throw new Error('Use a fresh password with at least 12 characters.')
-      if (input.role === 'teacher' && !/^\d{4}-\d{2}-\d{2}$/.test(input.employed_from ?? '')) throw new Error('Provide employed_from as YYYY-MM-DD.')
+      if (input.role !== 'admin' && !/^\d{4}-\d{2}-\d{2}$/.test(input.employed_from ?? '')) throw new Error('Provide employed_from as YYYY-MM-DD.')
       if (profile?.active) throw new Error('This profile is already active. Use reset-password or disable explicitly.')
       if (profile && (profile.role !== input.role || profile.full_name !== input.full_name.trim())) throw new Error('Pending profile differs from input; reconcile the pending profile before continuing.')
-      if (!profile) profile = check(await client.from('profiles').insert({ cedula: input.cedula, full_name: input.full_name.trim(), role: input.role, active: false }).select().single())
+      if (!profile) profile = check(await client.from('profiles').insert({ cedula: username ? null : input.cedula, username, full_name: input.full_name.trim(), role: input.role, active: false }).select().single())
       // Resume only Auth identities marked by this trusted provisioning workflow.
       let authUser = null
       for (let page=1; ; page++) {
@@ -67,9 +70,9 @@ try {
         if (profile.active) check(await client.from('profiles').update({ active: true }).eq('id',profile.id))
         console.log('Password reset. The account retained its previous activation state. Deliver the new password privately.')
       } else {
-        if (profile.role === 'teacher' && !/^\d{4}-\d{2}-\d{2}$/.test(input.employed_until ?? '')) throw new Error('Provide employed_until to end future report eligibility.')
+        if (profile.role !== 'admin' && !/^\d{4}-\d{2}-\d{2}$/.test(input.employed_until ?? '')) throw new Error('Provide employed_until to end future report eligibility.')
         check(await client.from('profiles').update({ active: false }).eq('id',profile.id))
-        if (profile.role === 'teacher') check(await client.from('teachers').update({ employed_until: input.employed_until }).eq('id',profile.id))
+        if (profile.role !== 'admin') check(await client.from('teachers').update({ employed_until: input.employed_until }).eq('id',profile.id))
         check(await client.auth.admin.updateUserById(profile.auth_user_id,{ ban_duration: '876000h' }))
         console.log('Account disabled. Historical attendance retained.')
       }

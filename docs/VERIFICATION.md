@@ -203,3 +203,28 @@ and pgTAP suite were not run. The script now enrolls and verifies a real TOTP fa
 local stack. Its code generator passes the RFC 6238 SHA-1 vectors.
 No hosted MFA settings, migrations, Edge deployment, or production enrollment were changed or verified.
 Follow the rollout/recovery instructions in `SETUP.md` before treating MFA as live protection.
+
+## Account roles and separate administrator login — 2026-09-21
+
+Extended the existing `profiles.role` column to seven account types. All six non-admin
+roles share teacher attendance, personal history, RLS restrictions, and account management.
+The account editor includes role selection; principal identities display **Director**.
+`/admin/login` accepts usernames through **Entrar como administrador**, with the existing
+TOTP enrollment/verification flow. Administrator identities need no cédula or attendance row.
+
+Applied hosted migrations `202609210001` and `202609210002`, deployed `admin-teachers`,
+and regenerated types from the hosted schema. Created the requested username administrator
+using credentials supplied privately, verified password login and MFA enrollment availability,
+and removed the temporary unverified enrollment so the operator can configure their authenticator.
+No password or MFA secret is committed or included in frontend assets.
+
+Changed José Palma's verified account to `principal` in a transaction, established attendance
+eligibility from 2026-09-21, and incremented both the profile and trusted Auth session version.
+Confirmed his original credentials still work, the old session is rejected, personal history
+is scoped to his account, and admin RPCs plus the deployed Edge Function deny him. No
+operational attendance marks were created during verification.
+
+Validation: 55 unit/database tests passed; 25 focused browser cases passed across desktop
+Chromium, mobile Chromium, and Safari (MFA). Additional public-layout checks passed except
+an intermittent existing loading-progress completion assertion on desktop Chromium;
+this broader run is not claimed as fully passing. Frontend publication to Vercel was not performed.

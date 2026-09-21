@@ -1,3 +1,4 @@
+import { roleLabels } from '../../lib/roles'
 import { usePanelReady } from '../../app/usePanelReady'
 import { useCallback, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
@@ -31,7 +32,7 @@ function TeacherDetails({ teacherId, context }: { teacherId: string; context: Ap
   const teacher = result.data
   return <>
     {back}
-    <div className="page-heading teacher-detail-heading"><div><h1>{teacher.full_name}</h1><p>C.I. {teacher.cedula} · <span className={`badge ${teacher.active ? 'green' : 'amber'}`}>{teacher.active ? 'Activo' : 'Bloqueado'}</span></p></div>
+    <div className="page-heading teacher-detail-heading"><div><h1>{teacher.full_name}</h1><p>{roleLabels[teacher.role]} · C.I. {teacher.cedula} · <span className={`badge ${teacher.active ? 'green' : 'amber'}`}>{teacher.active ? 'Activo' : 'Bloqueado'}</span></p></div>
     </div>
     {message && <p className="feedback success" role="status">{message}</p>}
     <div className="teacher-actions teacher-account-actions">

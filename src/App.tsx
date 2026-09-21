@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { BrowserRouter } from 'react-router'
+import { BrowserRouter, Route, Routes } from 'react-router'
 import { supabase } from './lib/supabase'
 import { Login } from './features/auth/Login'
 const Workspace = lazy(() => import('./app/Workspace').then(module => ({ default: module.Workspace })))
@@ -24,5 +24,5 @@ export default function App() {
     })
     return () => data.subscription.unsubscribe()
   }, [])
-  return <BrowserRouter>{loading ? <Loading fullPage description="Verificando tu sesión." /> : session ? <Suspense fallback={<Loading fullPage description="Preparando tu espacio." />}><Workspace key={session.user.id} userId={session.user.id} /></Suspense> : <Login />}</BrowserRouter>
+  return <BrowserRouter>{loading ? <Loading fullPage description="Verificando tu sesión." /> : session ? <Suspense fallback={<Loading fullPage description="Preparando tu espacio." />}><Workspace key={session.user.id} userId={session.user.id} /></Suspense> : <Routes><Route path="/admin/login" element={<Login key="admin" admin />} /><Route path="*" element={<Login key="staff" />} /></Routes>}</BrowserRouter>
 }

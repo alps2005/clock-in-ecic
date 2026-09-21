@@ -1,3 +1,4 @@
+import { roleLabels } from '../lib/roles'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { Bell, CalendarDays, ClipboardCheck, LogOut, PanelLeft, RefreshCw, Users } from 'lucide-react'
@@ -25,7 +26,7 @@ export function WorkspaceShell({ context, children, logout, loggingOut, logoutEr
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(''), 4500); return () => clearTimeout(timer) }, [toast])
   function toggle() { setCollapsed(value => { try { localStorage.setItem('ecic-sidebar-collapsed', String(!value)) } catch { /* Storage can be unavailable. */ } return !value }) }
   const nav = admin ? <><NavLink to="/admin" end><ClipboardCheck size={18} aria-hidden="true" /><span>Asistencia</span></NavLink><NavLink to="/admin/docentes"><Users size={18} aria-hidden="true" /><span>Docentes</span>{counts && <span className="nav-count">{counts.teachers}</span>}</NavLink><NavLink to="/admin/avisos"><Bell size={18} aria-hidden="true" /><span>Notificaciones</span>{counts && <span className="nav-count">{counts.notifications}</span>}</NavLink></> : <><NavLink to="/jornada"><CalendarDays size={18} aria-hidden="true" /><span>Mi jornada</span></NavLink><NavLink to="/historial"><ClipboardCheck size={18} aria-hidden="true" /><span>Mi historial</span></NavLink></>
-  const identity = <div className="teacher-identity"><span className="teacher-avatar" aria-hidden="true">{context.profile.full_name[0]}</span><div><strong>{context.profile.full_name}</strong><small>{admin ? 'Administrador' : 'Docente'}</small></div></div>
+  const identity = <div className="teacher-identity"><span className="teacher-avatar" aria-hidden="true">{context.profile.full_name[0]}</span><div><strong>{context.profile.full_name}</strong><small>{roleLabels[context.profile.role]}</small></div></div>
   const logoutButton = <button className="button teacher-logout" disabled={loggingOut} onClick={logout}><LogOut size={16} aria-hidden="true" />{loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}</button>
   return <div className={`teacher-ui teacher-shell${admin ? ' admin-ui' : ''}${collapsed ? ' sidebar-collapsed' : ''}`}>
     <a className="skip-link" href="#main">Ir al contenido</a>
