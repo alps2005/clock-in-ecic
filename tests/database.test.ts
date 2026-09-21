@@ -15,6 +15,7 @@ async function setup(): Promise<PGlite> {
 }
 async function login(db: PGlite, user = 1) {
   await db.exec(`reset role; select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-${String(user).padStart(12,'0')}',false); set role authenticated;`)
+  await db.query("select set_config('request.jwt.claims',$1,false)", [JSON.stringify({ app_metadata: { ecic_session_version: 1 }, aal: user === 3 ? 'aal2' : 'aal1' })])
 }
 async function time(db: PGlite, value: string) {
   await db.exec('reset role')
@@ -25,6 +26,39 @@ async function record(db: PGlite, kind = 'entry', prior = 0, request = randomUUI
   const result = await db.query<{ event: { id: string; occurred_at: string; kind: string } }>('select public.record_attendance($1,$2,$3,$4,$5,$6) as event', [kind,'2026-09-14',prior,request,payload,justification])
   return result.rows[0].event
 }
+
+test('administrators need aal2 for every browser RPC and direct RLS read; teachers remain password-only', async () => {
+  const db = await setup()
+  try {
+    await login(db)
+    await record(db)
+    await db.exec('select public.app_context()')
+    await login(db, 3)
+    const calls = [
+      'public.app_context()', 'public.admin_teachers()', 'public.admin_sidebar_counts()',
+      'public.admin_notifications()',
+      "public.admin_teacher('20000000-0000-0000-0000-000000000001')",
+      "public.attendance_report('2026-09-14','2026-09-14')",
+      "public.admin_teacher_report('20000000-0000-0000-0000-000000000001','2026-09-14','2026-09-14')",
+      "public.record_attendance('entry','2026-09-14',0,gen_random_uuid())",
+    ]
+    for (const aal of [undefined, null, 'aal1', 'invalid']) {
+      await db.query("select set_config('request.jwt.claims',$1,false)", [JSON.stringify({ aal, app_metadata: { ecic_session_version: 1, aal: 'aal2' }, user_metadata: { aal: 'aal2' } })])
+      for (const call of calls) await assert.rejects(db.exec(`select ${call}`), /MFA_REQUIRED/, call)
+      for (const table of ['profiles', 'teachers', 'attendance_events']) {
+        assert.equal((await db.query(`select * from public.${table}`)).rows.length, 0, `${table}: ${aal}`)
+      }
+    }
+    await login(db, 3)
+    for (const call of calls.slice(0, -1)) await db.exec(`select ${call}`)
+    assert.equal((await db.query('select * from public.profiles')).rows.length, 4)
+    assert.equal((await db.query('select * from public.attendance_events')).rows.length, 1)
+    await assert.rejects(record(db), /ACCESS_DENIED/, 'MFA does not grant teachers-only mutations to admins')
+    await db.exec('reset role; update public.profiles set session_version=2 where role=\'admin\'; set role authenticated')
+    await assert.rejects(db.exec('select public.app_context()'), /ACCESS_DENIED/, 'aal2 cannot bypass revoked sessions')
+    assert.equal((await db.query('select * from public.profiles')).rows.length, 0)
+  } finally { await db.close() }
+})
 
 test('fresh schema enforces role isolation and no direct browser writes', async () => {
   const db = await setup()

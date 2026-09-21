@@ -24,7 +24,9 @@ maintenance. Do not manually change historical employment dates or holidays to h
 RLS is enabled on every table, including the private token table. Anonymous browser table access
 and attendance writes are denied. Teachers can select only their own profile, teacher and event rows;
 admins can read all three. Both require activation and a matching trusted session-version claim.
-Role selection never reads user-editable metadata.
+Administrators also require the signed JWT's top-level `aal` claim to be `aal2` for all three tables,
+including their own profile. Missing/invalid assurance claims deny access. Role selection never reads
+user-editable metadata.
 
 The only browser attendance write path is `record_attendance`. Security-definer functions have an
 empty search path, qualified objects and explicit caller checks; PUBLIC execution is revoked.
@@ -35,6 +37,12 @@ Trusted provisioning functions are executable only by `service_role`/database ad
 
 All browser functions require authenticated access. The frontend's generated database types describe
 Postgres columns and RPC arguments; `src/types/app.ts` describes the JSON response shapes.
+Every browser RPC calls `private.caller()`, which rejects administrators without `aal2` with
+`MFA_REQUIRED` after validating the active profile and session version. This includes `app_context`:
+no administrator workspace data is returned before MFA. The UI uses that error to offer TOTP enrollment
+or verification through Supabase Auth. Teachers do not require MFA.
+The `admin-teachers` Edge Function checks this RPC and independently requires `aal2` in the same
+bearer token already validated by Supabase Auth before making any service-role call.
 
 ### `app_context()` → JSON
 

@@ -12,6 +12,7 @@ import { History } from '../features/history/History'
 import { TeacherPage } from '../features/admin/TeacherPage'
 import { TeachersPage } from '../features/admin/TeachersPage'
 import { NotificationsPage } from '../features/admin/NotificationsPage'
+import { AdminMfa } from '../features/auth/AdminMfa'
 
 export function Workspace({ userId }: { userId: string }) {
   const context = useRemote(getContext, 15_000)
@@ -28,6 +29,7 @@ export function Workspace({ userId }: { userId: string }) {
     } catch { setLogoutError('No se pudo cerrar la sesión. Inténtalo nuevamente.'); setLoggingOut(false) }
   }
   if (context.loading) return <Loading fullPage description="Cargando tu cuenta." />
+  if (context.error instanceof Error && context.error.message === 'MFA_REQUIRED') return <AdminMfa onVerified={context.refresh} logout={() => void logout()} loggingOut={loggingOut} logoutError={logoutError} />
   if (context.error || !context.data || context.data.profile.auth_user_id !== userId) return <AccessFailure error={context.error ?? new Error('ACCESS_DENIED')} retry={context.refresh} logout={() => void logout()} loggingOut={loggingOut} logoutError={logoutError} />
   const data = context.data
   const admin = data.profile.role === 'admin'

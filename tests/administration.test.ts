@@ -13,6 +13,7 @@ async function setup() {
 }
 async function login(db: PGlite, suffix: string) {
   await db.exec(`reset role; set "request.jwt.claim.sub"='10000000-0000-0000-0000-${suffix.padStart(12, '0')}'; set role authenticated;`)
+  await db.query("select set_config('request.jwt.claims',$1,false)", [JSON.stringify({ app_metadata: { ecic_session_version: 1 }, aal: suffix === '3' ? 'aal2' : 'aal1' })])
 }
 
 test('teacher directory is admin-only, searchable, paginated, and contains no passwords', async () => {

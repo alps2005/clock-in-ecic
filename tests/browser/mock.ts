@@ -1,26 +1,63 @@
 import type { Page } from '@playwright/test'
 import type { AppContext, AttendanceEvent, Report, ReportRow } from '../../src/types/app.ts'
 
-export async function mockBackend(page: Page, options: { role?: 'teacher' | 'admin'; schoolDate?: string; time?: string; uncertain?: boolean; events?: AttendanceEvent[] } = {}) {
+export async function mockBackend(page: Page, options: { role?: 'teacher' | 'admin'; schoolDate?: string; time?: string; uncertain?: boolean; events?: AttendanceEvent[]; mfa?: 'enroll' | 'verify' | 'stale' } = {}) {
   const role = options.role ?? 'teacher'
   const userId = role === 'teacher' ? '10000000-0000-0000-0000-000000000001' : '10000000-0000-0000-0000-000000000003'
   const profileId = role === 'teacher' ? '20000000-0000-0000-0000-000000000001' : '20000000-0000-0000-0000-000000000003'
   const events: AttendanceEvent[] = [...(options.events ?? [])]
   const requests: Record<string, unknown>[] = []
+  const protectedRequests: string[] = []
+  const mfaRequests: string[] = []
+  const factorId = '30000000-0000-0000-0000-000000000001'
+  const factors: { id: string; factor_type: 'totp'; status: 'verified' | 'unverified'; friendly_name: string; created_at: string; updated_at: string }[] = options.mfa === 'verify' || options.mfa === 'stale'
+    ? [{ id: factorId, factor_type: 'totp', status: options.mfa === 'verify' ? 'verified' : 'unverified', friendly_name: 'Clock-in ECIC', created_at: '2026-09-01T00:00:00Z', updated_at: '2026-09-01T00:00:00Z' }] : []
+  // Existing workspace tests start with an already verified admin session.
+  let aal = role === 'admin' && !options.mfa ? 'aal2' : 'aal1'
   let lost = false
   let inactive = false
   let schoolDate = options.schoolDate ?? '2026-09-14'
   const serverTime = options.time ?? '2026-09-14T11:30:00Z'
-  const user = { id: userId, aud: 'authenticated', role: 'authenticated', email: '0000000001@login.clock-in.invalid', app_metadata: { ecic_session_version: 1 }, user_metadata: {}, created_at: '2026-09-01T00:00:00Z' }
+  const user = { id: userId, aud: 'authenticated', role: 'authenticated', email: '0000000001@login.clock-in.invalid', app_metadata: { ecic_session_version: 1 }, user_metadata: {}, factors, created_at: '2026-09-01T00:00:00Z' }
   const encoded = (value: unknown) => Buffer.from(JSON.stringify(value)).toString('base64url')
-  const token = `${encoded({ alg: 'HS256', typ: 'JWT' })}.${encoded({ sub: userId, role: 'authenticated', exp: Math.floor(Date.now()/1000)+3600, iat: Math.floor(Date.now()/1000), app_metadata: user.app_metadata })}.test-signature`
+  const session = () => ({ access_token: `${encoded({ alg: 'HS256', typ: 'JWT' })}.${encoded({ sub: userId, role: 'authenticated', aal, exp: Math.floor(Date.now()/1000)+3600, iat: Math.floor(Date.now()/1000), app_metadata: user.app_metadata })}.test-signature`, token_type: 'bearer', expires_in: 3600, refresh_token: 'test-refresh', user })
   await page.route('https://ecic-test.supabase.co/**', async route => {
     const url = new URL(route.request().url())
     const json = (body: unknown, status=200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) })
-    if (url.pathname === '/auth/v1/token') return json({ access_token: token, token_type: 'bearer', expires_in: 3600, refresh_token: 'test-refresh', user })
+    if (url.pathname === '/auth/v1/token') {
+      if (options.mfa && url.searchParams.get('grant_type') === 'password') aal = 'aal1'
+      return json(session())
+    }
     if (url.pathname === '/auth/v1/logout') return route.fulfill({ status: 204 })
     if (url.pathname === '/auth/v1/user') return json(user)
+    if (url.pathname.startsWith('/auth/v1/factors')) {
+      mfaRequests.push(`${route.request().method()} ${url.pathname}`)
+      if (route.request().method() === 'DELETE') {
+        const index = factors.findIndex(factor => url.pathname.endsWith(factor.id))
+        if (index >= 0) factors.splice(index, 1)
+        return json({ id: factorId })
+      }
+      if (url.pathname === '/auth/v1/factors') {
+        factors.push({ id: factorId, factor_type: 'totp', status: 'unverified', friendly_name: 'Clock-in ECIC', created_at: '2026-09-01T00:00:00Z', updated_at: '2026-09-01T00:00:00Z' })
+        const { default: QRCode } = await import('qrcode')
+        const secret = 'JBSWY3DPEHPK3PXP'
+        const uri = `otpauth://totp/Clock-in%20ECIC:fixture?secret=${secret}&issuer=Clock-in%20ECIC`
+        return json({ id: factorId, type: 'totp', totp: { secret, uri, qr_code: await QRCode.toString(uri, { type: 'svg' }) } })
+      }
+      if (url.pathname.endsWith('/challenge')) return json({ id: 'test-challenge', type: 'totp', expires_at: Math.floor(Date.now()/1000) + 300 })
+      if (url.pathname.endsWith('/verify')) {
+        if (route.request().postDataJSON().code !== '123456') return json({ code: 'mfa_verification_failed', msg: 'Invalid test code' }, 422)
+        factors[0].status = 'verified'
+        aal = 'aal2'
+        return json(session())
+      }
+    }
     if (inactive) return json({ message: 'ACCESS_DENIED', code: 'P0001' }, 400)
+    if (url.pathname.startsWith('/rest/') || url.pathname.startsWith('/functions/')) {
+      protectedRequests.push(url.pathname)
+      const claims = JSON.parse(Buffer.from(route.request().headers().authorization.split('.')[1], 'base64url').toString())
+      if (role === 'admin' && claims.aal !== 'aal2') return json({ message: 'MFA_REQUIRED', code: 'P0001' }, 400)
+    }
     if (url.pathname.endsWith('/app_context')) {
       const context: AppContext = { profile: { id: profileId, auth_user_id: userId, cedula: '0000000001', full_name: role === 'teacher' ? 'Ana Torres' : 'Administración ECIC', role, active: true }, server_time: serverTime, school_date: schoolDate, working_day: true, policy: { id: 'policy', timezone: 'America/Guayaquil', weekdays: [1,2,3,4,5], entry_opens: '06:00:00', entry_closes: '06:40:00', exit_opens: '12:40:00', exit_closes: '13:30:00' }, events }
       return json(context)
@@ -46,7 +83,7 @@ export async function mockBackend(page: Page, options: { role?: 'teacher' | 'adm
     if (url.pathname.endsWith('/admin_sidebar_counts')) return role === 'admin' ? json({ teachers: 29, justifications: 3, notifications: 1 }) : json({ message: 'ACCESS_DENIED', code: 'P0001', hint: null, details: null }, 400)
     return json({ message: 'Unexpected test request' }, 500)
   })
-  return { events, requests, setSchoolDate: (date: string) => { schoolDate = date }, disable: () => { inactive = true } }
+  return { events, requests, protectedRequests, mfaRequests, setSchoolDate: (date: string) => { schoolDate = date }, disable: () => { inactive = true } }
 }
 export async function signIn(page: Page) {
   await page.goto('/')

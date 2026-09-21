@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { randomBytes, randomUUID } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
 import { createClient } from '@supabase/supabase-js'
+import { totp } from '../tests/helpers/totp.mjs'
 
 const status = spawnSync('node_modules/.bin/supabase', ['status', '-o', 'json'], { encoding: 'utf8' })
 if (status.status !== 0) throw new Error('Start the local Supabase stack first.')
@@ -37,6 +38,18 @@ try {
   adminAuthId = auth.user.id
   check(await service.from('profiles').insert({ id: adminId, auth_user_id: adminAuthId, cedula: adminCedula, full_name: 'Disposable integration admin', role: 'admin', active: true }))
   const admin = await login(adminCedula, password)
+  const passwordOnlyToken = admin.token
+  assert.equal((await admin.instance.rpc('app_context')).error?.message, 'MFA_REQUIRED')
+  assert.deepEqual(check(await admin.instance.from('profiles').select('id')), [])
+  assert.equal((await invoke(admin.token, { action: 'create' })).status, 403)
+  const factor = check(await admin.instance.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Disposable test authenticator' }))
+  const challenge = check(await admin.instance.auth.mfa.challenge({ factorId: factor.id }))
+  const upgraded = check(await admin.instance.auth.mfa.verify({ factorId: factor.id, challengeId: challenge.id, code: totp(factor.totp.secret) }))
+  admin.token = upgraded.access_token
+  assert.equal((await invoke(passwordOnlyToken, { action: 'create' })).status, 403)
+  const freshPasswordLogin = await login(adminCedula, password)
+  assert.equal((await freshPasswordLogin.instance.rpc('app_context')).error?.message, 'MFA_REQUIRED')
+  console.log('PASS mandatory TOTP enrollment, aal2 upgrade, and rejection of password-only admin sessions')
   const context = check(await admin.instance.rpc('app_context'))
   const today = context.school_date
   const input = { action: 'create', full_name: 'Disposable integration teacher', cedula: teacherCedula, password, employed_from: today }

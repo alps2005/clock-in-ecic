@@ -109,6 +109,50 @@ Set Site URL to the final HTTPS origin when available, and allow the required lo
 testing (`http://localhost:5173`). This release has no email-based recovery redirect route. Recovery
 is handled by the administrator. Use a password minimum of 12 characters to match local provisioning.
 
+### Administrator MFA
+
+Administrators must use a TOTP authenticator. Teacher sign-in remains cédula/password only.
+The first administrator sign-in offers a QR and manual setup key; a valid six-digit code completes
+enrollment and unlocks the workspace. Subsequent password sign-ins require another code.
+An already verified session can survive reloads until Supabase invalidates or downgrades it.
+QR secrets and entered codes stay in component memory, never in application storage or logs.
+Reopening an unfinished setup lets the user replace unverified factors; verified factors are never
+removed by this flow. Complete the initial setup promptly with the intended administrator.
+
+For an existing hosted project, roll out in this order:
+
+1. Enable **TOTP enrollment and verification** in Supabase Auth's MFA settings. The local
+   `supabase/config.toml` settings do not change the hosted project. Phone MFA remains disabled.
+2. Deploy the frontend containing the enrollment/verification screen.
+3. Review and apply `202609210001_admin_mfa.sql`. All administrator RPCs, including `app_context`,
+   and direct RLS reads now require `aal2`. Existing password-only sessions must verify MFA.
+4. Deploy the updated `admin-teachers` Edge Function, which also explicitly checks `aal2` after
+   authenticating the bearer token. Both backend changes are required for the full protection.
+5. Verify enrollment and a fresh password login with an administrator. Confirm that direct admin
+   RPC/table requests and Edge mutations fail using the pre-MFA token, while teachers still sign in.
+
+Local Supabase needs a restart after changing Auth configuration. On a disposable stack, apply the
+migrations and run `npm run db:test`, then serve `admin-teachers` locally and run
+`node scripts/test-admin-local.mjs`. The integration script creates a disposable administrator,
+checks password-only denial, enrolls a real TOTP factor, verifies it, and tests management with the
+upgraded token. It removes its temporary accounts; it refuses non-loopback backends.
+
+Lost-device recovery is a trusted-operator procedure, not an MFA bypass in the app:
+
+1. Verify the administrator's identity outside the app. Disable that profile and increment its
+   `session_version` before changing factors, so existing application tokens stop working.
+2. Using server-side operator credentials, remove the lost factors with Supabase Auth's admin MFA
+   API (`auth.admin.mfa.listFactors` / `deleteFactor`). Never put a service key in the frontend.
+3. Reset the password through the trusted `scripts/admin.mjs reset-password` workflow, which keeps
+   profile and Auth session versions aligned, and revoke the account's Auth sessions.
+   Restore the profile's activation only when the owner
+   can sign in and immediately enroll a new authenticator. The reset command preserves a disabled state.
+4. Verify the new factor and confirm old tokens remain rejected. Do not remove the database MFA guard
+   or substitute user-editable metadata for `aal2` during recovery.
+
+See [Supabase MFA](https://supabase.com/docs/guides/auth/auth-mfa) and
+[TOTP enrollment and verification](https://supabase.com/docs/guides/auth/auth-mfa/totp).
+
 ## 5. Trusted operator credentials
 
 The initial administrator still uses the trusted provisioning command below. Once signed in,

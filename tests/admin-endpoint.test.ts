@@ -3,6 +3,10 @@ import assert from 'node:assert/strict'
 import { createClient } from '@supabase/supabase-js'
 import { handleTeacherAdmin } from '../supabase/functions/admin-teachers/handler.ts'
 
+// Auth is mocked below; these claims are not signed credentials for a live service.
+const bearer = (claims: object) => `Bearer e30.${Buffer.from(JSON.stringify(claims)).toString('base64url')}.test-signature`
+const adminAuthorization = bearer({ aal: 'aal2' })
+
 test('management endpoint rejects missing, invalid, teacher, and revoked administrator credentials before privileged calls', async () => {
   for (const scenario of ['missing', 'invalid', 'teacher', 'revoked']) {
     let privileged = 0
@@ -12,9 +16,30 @@ test('management endpoint rejects missing, invalid, teacher, and revoked adminis
       return Response.json(scenario === 'revoked' ? { message: 'ACCESS_DENIED' } : { profile: { role: 'teacher', auth_user_id: 'user-id' } }, { status: scenario === 'revoked' ? 400 : 200 })
     } } })
     const service = createClient('https://fixture.invalid', 'service-key', { auth: { persistSession: false }, global: { fetch: async () => { privileged++; throw new Error('Unexpected privileged request') } } })
-    const response = await handleTeacherAdmin(new Request('https://fixture.invalid/admin-teachers', { method: 'POST', headers: scenario === 'missing' ? {} : { Authorization: 'Bearer dummy-token' }, body: JSON.stringify({ action: 'create' }) }), caller, service)
+    const response = await handleTeacherAdmin(new Request('https://fixture.invalid/admin-teachers', { method: 'POST', headers: scenario === 'missing' ? {} : { Authorization: adminAuthorization }, body: JSON.stringify({ action: 'create' }) }), caller, service)
     assert.ok([401, 403].includes(response.status), scenario)
     assert.deepEqual(await response.json(), { error: 'ACCESS_DENIED' })
+    assert.equal(privileged, 0, scenario)
+  }
+})
+
+test('management rejects password-only administrators before any service-role action, including with an older database', async () => {
+  for (const scenario of ['database-gate', 'aal1', 'missing-aal', 'malformed']) {
+    let privileged = 0
+    const caller = createClient('https://fixture.invalid', 'public-key', { auth: { persistSession: false }, global: { fetch: async input => {
+      const path = new URL(String(input)).pathname
+      if (path === '/auth/v1/user') return Response.json({ id: 'admin-id' })
+      return scenario === 'database-gate'
+        ? Response.json({ message: 'MFA_REQUIRED' }, { status: 400 })
+        : Response.json({ profile: { role: 'admin', auth_user_id: 'admin-id' } })
+    } } })
+    const service = createClient('https://fixture.invalid', 'service-key', { auth: { persistSession: false }, global: { fetch: async () => { privileged++; throw new Error('Unexpected privileged request') } } })
+    const authorization = scenario === 'malformed' ? 'Bearer malformed' : bearer({ ...(scenario !== 'missing-aal' ? { aal: 'aal1' } : {}), user_metadata: { aal: 'aal2' } })
+    for (const action of ['create', 'update', 'disable', 'reset-password', 'delete']) {
+      const response = await handleTeacherAdmin(new Request('https://fixture.invalid/admin-teachers', { method: 'POST', headers: { Authorization: authorization }, body: JSON.stringify({ action }) }), caller, service)
+      assert.equal(response.status, 403, `${scenario}: ${action}`)
+      assert.deepEqual(await response.json(), { error: 'MFA_REQUIRED' })
+    }
     assert.equal(privileged, 0, scenario)
   }
 })
@@ -48,7 +73,7 @@ test('blocking preserves employment dates; deleting removes Auth only after revo
       if (path.includes('/rpc/finish_teacher_') || path.endsWith('/unlock_teacher_admin')) return Response.json(null)
       throw new Error(`Unexpected test request: ${method} ${path}`)
     } } })
-    const response = await handleTeacherAdmin(new Request('https://fixture.invalid/admin-teachers', { method: 'POST', headers: { Authorization: 'Bearer dummy-token' }, body: JSON.stringify({ action, id }) }), caller, service)
+    const response = await handleTeacherAdmin(new Request('https://fixture.invalid/admin-teachers', { method: 'POST', headers: { Authorization: adminAuthorization }, body: JSON.stringify({ action, id }) }), caller, service)
     assert.deepEqual(await response.json(), { ok: true, id })
     const revoke = calls.findIndex(call => call.path.endsWith('/profiles') && call.method === 'PATCH')
     assert.deepEqual(calls[revoke].body, { active: false, session_version: 2 })
@@ -100,7 +125,7 @@ test('blocking verifies identity, detects concurrent changes, and keeps access r
       }
       throw new Error(`Unexpected test request: ${method} ${path}`)
     } } })
-    const request = () => new Request('https://fixture.invalid/admin-teachers', { method: 'POST', headers: { Authorization: 'Bearer dummy-token' }, body: JSON.stringify({ action: 'disable', id }) })
+    const request = () => new Request('https://fixture.invalid/admin-teachers', { method: 'POST', headers: { Authorization: adminAuthorization }, body: JSON.stringify({ action: 'disable', id }) })
     const response = await handleTeacherAdmin(request(), caller, service)
     assert.equal(response.status, 400)
     assert.deepEqual(await response.json(), { error: scenario === 'identity' ? 'IDENTITY_MISMATCH' : scenario === 'concurrent' ? 'ACCOUNT_CHANGED' : 'ADMIN_OPERATION_FAILED' })

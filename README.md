@@ -3,6 +3,8 @@
 New teacher attendance app built with React, TypeScript, Vite, Tailwind and Supabase.
 Spanish interface, cédula/password login, school QR attendance, personal history and admin reports.
 Administrators manage teacher accounts and receive in-app notices for missed entry/exit windows.
+Administrators must enroll an authenticator and verify a six-digit code after password sign-in.
+RPCs, direct database reads, and teacher-management operations require an MFA-verified session.
 Both roles share a full-height desktop workspace and mobile navigation. Light mode is the default; the sun/moon button in the header switches palettes and remembers the choice across login, loading, dialogs, and subsequent visits. Theme changes sync between tabs. Sidebar sweeps, panel entrances, and dialog transitions respect the device’s reduced-motion preference.
 Report presets use the server's Ecuador school date: “Esta semana” follows Monday–Friday,
 including when the week changes while the page is open. Custom date ranges stay unchanged.
@@ -21,7 +23,9 @@ are available on the edit page. Deletion removes the login account and closes em
 while attendance records remain available in the general admin report.
 
 Deploy `202609150002_teacher_details.sql` and the updated `admin-teachers` Edge Function
-before deploying the frontend. The new detail and history RPCs require an active admin session.
+before deploying the frontend. The detail and history RPCs require an active, MFA-verified admin session.
+For MFA rollout, also apply `202609210001_admin_mfa.sql`, enable TOTP enrollment/verification in hosted
+Supabase Auth, and deploy the updated frontend and Edge Function. See [MFA setup and recovery](docs/SETUP.md#administrator-mfa).
 
 ## Attendance statistics
 

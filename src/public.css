@@ -28,6 +28,12 @@
 .auth-card .login-help { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 12px; }
 .auth-card .login-help a { color: var(--accent-foreground); }
 .auth-card .login-help strong { font-weight: 500; }
+.mfa-card .mfa-enrollment { margin-top: 20px; }
+.mfa-card .mfa-enrollment p, .mfa-card #mfa-code-help { color: var(--muted-foreground); font-size: 13px; line-height: 1.6; }
+.mfa-qr { display: block; max-width: 100%; height: auto; margin: 16px auto; padding: 12px; background: white; border-radius: 8px; }
+.mfa-enrollment summary { cursor: pointer; font-size: 13px; }
+.mfa-secret { display: block; margin-top: 12px; overflow-wrap: anywhere; user-select: all; }
+.mfa-logout { width: 100%; margin-top: 16px; }
 .access-card { text-align: center; }
 .access-card .access-symbol { background: var(--warning-bg); color: var(--warning-fg); }
 .public-shell .access-message { margin-top: 10px; }

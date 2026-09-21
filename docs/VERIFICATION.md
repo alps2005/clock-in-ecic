@@ -180,3 +180,26 @@ No attendance records or marking rules were changed.
 Passed: 32 unit/database/endpoint tests, 50 desktop/mobile browser checks, lint and the
 production build. Reviewed desktop and mobile screenshots of the separate rows, including
 visible zero counters and the report-above-statistics ordering.
+
+## Administrator MFA — 2026-09-21 (local verification)
+
+Added mandatory TOTP enrollment/verification for administrators. Migration
+`202609210001_admin_mfa.sql` enforces signed top-level `aal2` in the common RPC caller and RLS
+ownership predicate. `admin-teachers` also checks the authenticated bearer token's assurance level
+before using service-role privileges. Teachers retain password-only access.
+
+- All 51 unit, embedded PostgreSQL, and endpoint tests passed. Checks include every browser RPC,
+  direct profile/teacher/attendance reads, absent/invalid assurance claims, metadata spoofing,
+  revoked sessions, and zero privileged Edge calls for password-only administrators.
+- All 15 MFA browser checks passed across desktop/mobile Chromium and WebKit: first enrollment,
+  QR rendering under CSP, manual key display, wrong-code retry, upgraded-session reload,
+  subsequent password login, deep links, stale setup recovery, factor lookup failure, and logout.
+- The teacher-management, attendance, and security-header browser regressions passed (40 checks;
+  one Chromium-only camera check skipped on WebKit). Type checking, lint, and the production build passed.
+
+Browser Auth responses and endpoint network responses are mocked; SQL migrations run in PGlite.
+Docker was stopped during this change, so the updated real Auth/Edge/PostgREST integration script
+and pgTAP suite were not run. The script now enrolls and verifies a real TOTP factor on the disposable
+local stack. Its code generator passes the RFC 6238 SHA-1 vectors.
+No hosted MFA settings, migrations, Edge deployment, or production enrollment were changed or verified.
+Follow the rollout/recovery instructions in `SETUP.md` before treating MFA as live protection.

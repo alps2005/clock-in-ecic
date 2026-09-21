@@ -17,9 +17,15 @@ export async function handleTeacherAdmin(request: Request, caller: SupabaseClien
     if (!/^Bearer \S+$/i.test(authorization)) return reply({ error: 'ACCESS_DENIED' }, 401)
     const auth = await caller.auth.getUser(authorization.slice(7))
     if (auth.error || !auth.data.user) return reply({ error: 'ACCESS_DENIED' }, 401)
-    // The RPC validates the JWT's session version against the current active profile.
+    // The RPC validates the active profile, session version, and administrator MFA.
     const context = await caller.rpc('app_context')
+    if (context.error?.message === 'MFA_REQUIRED') return reply({ error: 'MFA_REQUIRED' }, 403)
     if (context.error || context.data?.profile?.role !== 'admin' || context.data.profile.auth_user_id !== auth.data.user.id) return reply({ error: 'ACCESS_DENIED' }, 403)
+    // Decode only AFTER Auth has validated this exact bearer token. This additional
+    // gate keeps privileged operations protected even during a database rollout.
+    let aal: unknown
+    try { aal = JSON.parse(atob(authorization.slice(7).split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).aal } catch { /* Missing/malformed claims fail closed. */ }
+    if (aal !== 'aal2') return reply({ error: 'MFA_REQUIRED' }, 403)
     if (Number(request.headers.get('content-length') ?? 0) > 16000) return reply({ error: 'INVALID_REQUEST' }, 400)
     const text = await request.text()
     if (text.length > 16000) return reply({ error: 'INVALID_REQUEST' }, 400)
