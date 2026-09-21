@@ -99,6 +99,11 @@ test('camera recovers from denied permission, shows scan boundary, decodes a rea
   const qrImage = await QRCode.toDataURL(payload, { width: 300, margin: 4 })
   const backend = await mockBackend(page)
   await page.addInitScript(({ qrImage }) => {
+    // Exercise the blob-worker decoder even on browsers with a native BarcodeDetector.
+    Reflect.deleteProperty(window, 'BarcodeDetector')
+    document.addEventListener('securitypolicyviolation', event => {
+      document.documentElement.dataset.cspViolation = `${event.effectiveDirective}: ${event.blockedURI}`
+    })
     Object.defineProperty(MediaDevices.prototype, 'getUserMedia', { configurable: true, value: async (constraints: MediaStreamConstraints) => {
       const attempts = Number(document.documentElement.dataset.cameraAttempts ?? 0) + 1
       document.documentElement.dataset.cameraAttempts = String(attempts)
@@ -127,6 +132,7 @@ test('camera recovers from denied permission, shows scan boundary, decodes a rea
   await page.getByRole('button', { name: 'Escanear entrada' }).click()
   await expect(page.getByRole('alert')).toContainText('El acceso a la cámara está bloqueado')
   expect(await page.evaluate(() => document.documentElement.dataset.cameraAttempts)).toBe('1')
+  const decoderWorker = page.waitForEvent('worker')
   if (testInfo.project.use.isMobile) {
     await page.getByRole('button', { name: 'Reintentar cámara' }).tap()
   } else {
@@ -135,6 +141,7 @@ test('camera recovers from denied permission, shows scan boundary, decodes a rea
     await page.keyboard.press('Enter')
   }
   const boundary = page.locator('.scanner-region')
+  expect((await decoderWorker).url()).toMatch(/^blob:/)
   await expect(boundary).toBeVisible()
   await expect.poll(async () => {
     const frame = (await boundary.boundingBox())!
@@ -155,6 +162,7 @@ test('camera recovers from denied permission, shows scan boundary, decodes a rea
   await expect.poll(() => page.evaluate(() => document.documentElement.dataset.cameraStopped)).toBe('true')
   expect(backend.requests).toHaveLength(1)
   expect(backend.requests[0].p_qr).toBe(payload)
+  expect(await page.locator('html').getAttribute('data-csp-violation')).toBeNull()
 })
 
 test('a disabled session cannot restore teacher data', async ({ page }) => {

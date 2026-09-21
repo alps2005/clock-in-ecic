@@ -275,6 +275,30 @@ After deployment, record the HTTPS URL, set Supabase Auth's Site URL, and verify
 `/jornada`, `/historial`, `/admin`, `/admin/docentes` and `/admin/avisos` plus static asset content types. Role guards route
 users correctly; the backend is responsible for authorization.
 
+### Browser security headers
+
+`vercel.json` applies CSP, `X-Content-Type-Options: nosniff`,
+`Referrer-Policy: strict-origin-when-cross-origin`, and
+`Permissions-Policy: camera=(self), microphone=(), geolocation=()` to every path.
+CSP blocks inline scripts, JavaScript evaluation, plugins, embedded frames, and all framing of this app
+(`frame-ancestors 'none'`). Camera access still requires the user's permission over HTTPS.
+
+The resource exceptions are Google Fonts styles/fonts, HTTPS requests to `*.supabase.co`,
+data images, and blob workers used by the QR decoder. Inline **style attributes** support React's
+dynamic progress/timeline/scanner styles; inline scripts and style elements remain blocked.
+The synchronous `/theme-init.js` preserves the saved theme before first paint.
+The Supabase wildcard supports separate production/preview projects. If using a custom Supabase
+domain or a local backend with preview, explicitly update `connect-src` for that origin; deployments
+with fixed backends can narrow it to their exact project origins. Do not add broad `https:` or
+`unsafe-inline` script allowances to resolve a blocked resource.
+
+`npm run preview` uses these same headers, and `npm run test:e2e` tests the built app under CSP.
+Vite's development server keeps its HMR behavior. After deploying, inspect response headers on `/`,
+`/admin/docentes`, and an asset URL, and check the browser console for CSP violations while logging in,
+switching themes, exporting reports, and scanning a QR. Local tests do not verify Vercel's deployed headers.
+See [MDN's CSP guide](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP) and
+[camera permissions policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Permissions-Policy/camera).
+
 Check the camera on actual Android/iPhone devices over HTTPS: allow/deny permission, valid/invalid QR,
 front/back camera behavior, closing the scanner, navigation, and window expiration. If reusing an old
 origin, retire any old app-owned service worker/caches before launch, as explained in the reset guide.

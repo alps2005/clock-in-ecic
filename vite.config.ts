@@ -6,6 +6,14 @@ import { defineConfig, loadEnv } from 'vite'
 import type { Plugin } from 'vite'
 import { publicConfigNames, validateBuildConfig } from './src/lib/config.ts'
 
+// Exercise the deployment policy in preview and Playwright, without restricting Vite HMR.
+const deployment = JSON.parse(readFileSync(new URL('./vercel.json', import.meta.url), 'utf8')) as {
+  headers: { source: string; headers: { key: string; value: string }[] }[]
+}
+const previewHeaders = Object.fromEntries(deployment.headers
+  .filter(rule => rule.source === '/(.*)')
+  .flatMap(rule => rule.headers.map(({ key, value }) => [key, value])))
+
 function localCameraCertificate(): Plugin {
   return {
     name: 'local-camera-certificate',
@@ -27,6 +35,7 @@ export default defineConfig(({ mode }) => {
   return {
     envPrefix: publicConfigNames,
     plugins: [react(), tailwindcss(), localCameraCertificate()],
+    preview: { headers: previewHeaders },
     server: {
       host: true,
       https: mode === 'local-https' ? {

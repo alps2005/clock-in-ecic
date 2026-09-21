@@ -8,17 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <meta name="theme-color" content="#FAFBFC" />
-    <script>
-      // Apply the saved palette before the first paint, including the page canvas.
-      (() => {
-        let theme = 'light'
-        try { if (localStorage.getItem('ecic-theme') === 'dark') theme = 'dark' } catch { /* Storage may be unavailable. */ }
-        document.documentElement.dataset.theme = theme
-        document.documentElement.style.colorScheme = theme
-        document.documentElement.style.backgroundColor = theme === 'dark' ? '#181D21' : '#FAFBFC'
-        document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#181D21' : '#FAFBFC'
-      })()
-    </script>
+    <script src="/theme-init.js"></script>
     <link rel="stylesheet" href="/src/theme.css" />
     <meta name="description" content="Clock-in ECIC, el nuevo espacio de asistencia docente de nuestra comunidad." />
     <title>Clock-in ECIC · Asistencia docente</title>
