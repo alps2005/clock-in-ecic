@@ -14,6 +14,11 @@ including when the week changes while the page is open. Custom date ranges stay 
 - Exit QR: **12:40–13:30**. An unmatched entry after closing produces **Salida no registrada** and an admin dashboard notice.
 - Fresh accounts and database. No old data or application behavior is imported.
 
+Exports use the dates and search currently applied to the attendance table, including all
+matching pages. **Exportar** is in the filter card; its preview supports CSV and Excel downloads.
+Individual account exports retain that account's scope. Apply draft filter edits with **Consultar**
+before exporting them.
+
 ## Account roles and login
 
 The existing `profiles.role` column supports `admin`, `teacher`, `substitute_teacher`,

@@ -5,20 +5,20 @@ import { Download, FileSpreadsheet, X } from 'lucide-react'
 import { useRemote } from '../../app/useRemote'
 import { Failure } from '../../components/Feedback'
 import { PanelPlaceholder } from '../../components/PanelPlaceholder'
-import { getContext, getReport } from '../../lib/api'
+import { getReport, getTeacherReport } from '../../lib/api'
 import { dateLabel } from '../../lib/attendance'
-import { downloadBlob, excelBlob, exportTable, loadWeeklyRows, tableCsv } from '../../lib/attendanceExport'
+import { downloadBlob, excelBlob, exportTable, loadReportRows, tableCsv } from '../../lib/attendanceExport'
+import type { ReportExportFilter } from '../../lib/attendanceExport'
 
-export function ExportModal({ admin, close }: { admin: boolean; close: () => void }) {
+export function ExportModal({ admin, filter, close }: { admin: boolean; filter: ReportExportFilter; close: () => void }) {
   const { ref: dialog, dismiss } = useAnimatedDismiss<HTMLDialogElement>(close)
   const [downloading, setDownloading] = useState(false)
   const [downloadError, setDownloadError] = useState('')
-  const load = useCallback(async () => {
-    const context = await getContext()
-    return loadWeeklyRows(context.school_date, (from, to, page) => getReport(from, to, page, ''))
-  }, [])
+  const load = useCallback(() => loadReportRows(filter, page => filter.teacherId
+    ? getTeacherReport(filter.teacherId, filter.from, filter.to, page)
+    : getReport(filter.from, filter.to, page, filter.search)), [filter])
   const result = useRemote(load)
-  const table = exportTable(result.data?.rows ?? [], admin)
+  const table = exportTable(result.data?.rows ?? [], admin && !filter.teacherId)
 
   useEffect(() => {
     const element = dialog.current!
@@ -55,14 +55,14 @@ export function ExportModal({ admin, close }: { admin: boolean; close: () => voi
     }
   }}>
     <div className="export-heading">
-      <div><p className="eyebrow">{admin ? 'EXPORTAR ASISTENCIA' : 'Exportar asistencia'}</p><h2 id="export-title">Asistencia de esta semana</h2></div>
+      <div><p className="eyebrow">{admin ? 'EXPORTAR ASISTENCIA' : 'Exportar asistencia'}</p><h2 id="export-title">Asistencia del rango seleccionado</h2></div>
       <button type="button" className="ecic-ghost-button" aria-label="Cerrar exportación" onClick={dismiss} autoFocus><X size={18} aria-hidden="true" /></button>
     </div>
-    <p id="export-description" className="export-description">De lunes a viernes · {admin ? 'Todos los docentes' : 'Mis registros'} · Hora de Ecuador (UTC-5).</p>
+    <p id="export-description" className="export-description">{filter.teacherId ? 'Docente seleccionado' : admin ? filter.search ? `Búsqueda: ${filter.search}` : 'Todos los docentes' : 'Mis registros'} · Hora de Ecuador (UTC-5).</p>
     {result.loading ? <PanelPlaceholder label="Cargando vista previa" variant="table" /> : result.error ? <Failure error={result.error} retry={result.refresh} /> : result.data && <>
       <div className="export-summary"><span className="ecic-status-pill">{dateLabel(result.data.from)} — {dateLabel(result.data.to)}</span><span>{table.values.length} {table.values.length === 1 ? 'registro' : 'registros'}</span></div>
-      <p className="export-note">Se incluyen las jornadas hasta hoy dentro de la semana actual.</p>
-      {table.values.length === 0 ? <div className="empty-state"><FileSpreadsheet size={32} aria-hidden="true" /><h3>No hay registros esta semana</h3><p>Los registros de asistencia aparecerán aquí.</p></div> : <div className="table-scroll export-table-scroll" role="region" aria-label="Vista previa de asistencia semanal" tabIndex={0}>
+      <p className="export-note">Se incluyen todas las páginas del resultado con los filtros aplicados.</p>
+      {table.values.length === 0 ? <div className="empty-state"><FileSpreadsheet size={32} aria-hidden="true" /><h3>No hay registros en este rango</h3><p>Prueba con otras fechas o filtros.</p></div> : <div className="table-scroll export-table-scroll" role="region" aria-label="Vista previa de asistencia filtrada" tabIndex={0}>
         <table className="ecic-table export-table"><thead><tr>{table.headers.map(header => <th scope="col" key={header}>{header}</th>)}</tr></thead><tbody>{table.values.map((row, index) => <tr key={`${result.data!.rows[index].teacher_id}-${result.data!.rows[index].school_date}`}>{row.map((value, column) => <td key={table.headers[column]}>{value}</td>)}</tr>)}</tbody></table>
       </div>}
     </>}

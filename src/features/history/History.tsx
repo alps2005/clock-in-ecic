@@ -13,6 +13,7 @@ import { Link, useSearchParams } from 'react-router'
 import { getReport, getTeacherReport } from '../../lib/api'
 import { dateLabel, timeLabel } from '../../lib/attendance'
 import { currentSchoolWeek } from '../../lib/attendanceExport'
+import type { ReportExportFilter } from '../../lib/attendanceExport'
 import { ExportModal } from './ExportModal'
 import { Failure } from '../../components/Feedback'
 
@@ -30,7 +31,7 @@ export function History({ context, admin = false, teacherId }: { context: AppCon
   const [search, setSearch] = useState(() => admin && !teacherId ? (params.get('docente') ?? '').slice(0, 120) : '')
   const [appliedSearch, setAppliedSearch] = useState(search)
   const { from, to, setFrom, setTo, filter, apply, page, setPage, presets: allPresets } = useHistoryRange(context.school_date, admin ? 'Hoy' : 'Esta semana')
-  const [exportOpen, setExportOpen] = useState(false)
+  const [exportFilter, setExportFilter] = useState<ReportExportFilter | null>(null)
   const [selected, setSelected] = useState<ReportRow | null>(null)
   const filterError = rangeError(from, to)
   const presets = admin ? allPresets : historyPresets(context.school_date)
@@ -42,10 +43,13 @@ export function History({ context, admin = false, teacherId }: { context: AppCon
   function thisWeek() { apply(currentSchoolWeek(context.school_date)) }
   const openJustification = (row: ReportRow) => row.justification ? <button className="history-justification" onClick={event => { event.currentTarget.focus(); setSelected(row) }}>Ver justificación</button> : <span className="muted">—</span>
   return <div className="teacher-history">
-    <div className="page-heading"><div>{teacherId ? <h2>Historial de asistencia</h2> : <h1>{admin ? 'Asistencia docente' : 'Mi historial'}</h1>}<p>{teacherId ? 'Consulta las jornadas de este docente por fecha.' : admin ? 'Consulta las jornadas y los registros de tu equipo.' : 'Tus jornadas, en un solo lugar.'}</p></div>{!teacherId && <button className="button secondary" onClick={event => { event.currentTarget.focus(); setExportOpen(true) }}><Download size={16} aria-hidden="true" />Exportar</button>}</div>
+    <div className="page-heading"><div>{teacherId ? <h2>Historial de asistencia</h2> : <h1>{admin ? 'Asistencia docente' : 'Mi historial'}</h1>}<p>{teacherId ? 'Consulta las jornadas de este docente por fecha.' : admin ? 'Consulta las jornadas y los registros de tu equipo.' : 'Tus jornadas, en un solo lugar.'}</p></div></div>
     {data ? <HistorySummary totals={data.totals} /> : !result.error && <div className="history-summary" aria-label="Cargando estadísticas" aria-busy={result.loading}>{[1,2,3].map(i => <div key={i} className="skeleton" />)}</div>}
     <form className="ui-card history-filters" onSubmit={event => { event.preventDefault(); if (filterError) return; setAppliedSearch(search.trim()); apply() }}>
-      <div className="history-presets" role="group" aria-label="Rangos de fechas">{presets.map(range => <button type="button" key={range.label} aria-pressed={from === range.from && to === range.to} onClick={() => { setAppliedSearch(search.trim()); apply(range) }}>{range.label}</button>)}</div>
+      <div className="history-filter-actions">
+        <div className="history-presets" role="group" aria-label="Rangos de fechas">{presets.map(range => <button type="button" key={range.label} aria-pressed={from === range.from && to === range.to} onClick={() => { setAppliedSearch(search.trim()); apply(range) }}>{range.label}</button>)}</div>
+        <button type="button" className="button secondary" disabled={result.loading || !!result.error || !data} onClick={event => { event.currentTarget.focus(); setExportFilter({ ...filter, search: appliedSearch, teacherId }) }}><Download size={16} aria-hidden="true" />Exportar</button>
+      </div>
       <div className="history-date-fields"><DatePicker id="history-from" label="Desde" value={from} onChange={setFrom} invalid={!!filterError} /><DatePicker id="history-to" label="Hasta" value={to} onChange={setTo} invalid={!!filterError} />{admin && !teacherId && <div className="admin-report-search"><label htmlFor="search">Docente</label><input id="search" placeholder="Nombre o cédula" maxLength={120} value={search} onChange={event => setSearch(event.target.value)} /></div>}<button className="button primary" disabled={!!filterError}>Consultar</button></div>
       {filterError && <p id="history-range-error" role="alert" className="filter-error">{filterError}</p>}
     </form>
@@ -60,7 +64,7 @@ export function History({ context, admin = false, teacherId }: { context: AppCon
       </>}
     </section>}
     {selected && <JustificationDialog row={selected} close={() => setSelected(null)} />}
-    {exportOpen && <ExportModal admin={admin} close={() => setExportOpen(false)} />}
+    {exportFilter && <ExportModal admin={admin} filter={exportFilter} close={() => setExportFilter(null)} />}
   </div>
 }
 

@@ -124,6 +124,9 @@
 .absence-count { display: block; font-size: 32px; font-weight: 600; margin: 12px 0 4px; }
 .teacher-ui .history-summary > section > p { font-size: 13px; }
 .teacher-ui .history-filters { margin: 0; }
+.history-filter-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 12px; margin-bottom: 16px; }
+.history-filter-actions > .history-presets { margin-bottom: 0; min-width: 0; justify-self: start; }
+.history-filter-actions > .button { margin-left: auto; flex-shrink: 0; }
 .history-date-fields { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
 .history-date-fields > div { flex: 1; min-width: 160px; }
 .teacher-ui .history-filters label { margin: 0 0 6px; font-weight: 500; font-size: 13px; }
