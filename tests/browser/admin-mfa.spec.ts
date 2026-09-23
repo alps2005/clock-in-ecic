@@ -59,7 +59,7 @@ test('an enrolled admin must verify after password login and can resume a deep l
   await expect(page.getByRole('heading', { name: 'Verificación de administrador' })).toBeVisible()
   await page.getByLabel('Código de autenticación', { exact: true }).fill('123456')
   await page.getByRole('button', { name: 'Verificar y continuar' }).click()
-  await expect(page.getByRole('heading', { name: 'Ana Torres' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Ana Torres/ })).toBeVisible()
   await expect(page).toHaveURL(/\/admin\/avisos$/)
   expect(backend.mfaRequests.some(path => path === 'POST /auth/v1/factors')).toBe(false)
 })

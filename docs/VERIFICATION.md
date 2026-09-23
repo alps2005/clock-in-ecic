@@ -228,3 +228,32 @@ Validation: 55 unit/database tests passed; 25 focused browser cases passed acros
 Chromium, mobile Chromium, and Safari (MFA). Additional public-layout checks passed except
 an intermittent existing loading-progress completion assertion on desktop Chromium;
 this broader run is not claimed as fully passing. Frontend publication to Vercel was not performed.
+
+## Notification inbox deployment — 2026-09-23
+
+- Confirmed linked Supabase project `cymkalcrumsojiflvfvu` matches the frontend URL.
+- Reviewed remote migration history and dry-run output: only `202609230001_notification_inbox.sql`
+  and `202609230002_notification_cleanup_schedule.sql` were pending. Both are now applied;
+  confirmed both versions in `supabase_migrations.schema_migrations`.
+- Hosted `pg_cron` version is `1.6.4`. Job `ecic-notification-retention` (ID 1) is active,
+  runs every minute (`* * * * *`), and executes `select private.sync_admin_notifications()`.
+- Verified three actual scheduled executions succeeded at 12:37, 12:38 and 12:39 UTC
+  (07:37, 07:38 and 07:39 Ecuador time). This verifies the hosted worker independently
+  of local Docker, which remains stopped.
+- Read-only inbox check returned 8 notices, all unread, and 0 expired notices. No notices
+  were marked read or attendance records changed for verification. The 15-day deletion
+  boundary and non-regeneration were verified in the isolated database tests before deployment;
+  there were no expired hosted records available to exercise that boundary during this check.
+- Confirmed the authenticated role cannot directly read the private inbox table or execute
+  maintenance. It can call the read RPC, whose body checks admin role/MFA; anonymous execution
+  is denied.
+
+### Unread-first notification order — 2026-09-23
+
+Applied `202609230003_notification_unread_first.sql` to the same linked project after a dry run
+confirmed it was the only pending migration. Hosted read-back confirms unread-first sorting both
+before pagination and in JSON aggregation. Table and gallery share this RPC and refresh after
+modal closure. Each group retains descending school dates and stable teacher/kind tie-breakers.
+All 9 notification/administration database tests pass, including read notices moving behind unread
+notices across page boundaries and stable ordering after refresh. Verification did not change
+hosted notification read states.

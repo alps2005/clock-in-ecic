@@ -9,6 +9,7 @@ export async function mockBackend(page: Page, options: { role?: AppContext['prof
   const requests: Record<string, unknown>[] = []
   const protectedRequests: string[] = []
   const mfaRequests: string[] = []
+  let notificationReadAt: string | null = null
   const factorId = '30000000-0000-0000-0000-000000000001'
   const factors: { id: string; factor_type: 'totp'; status: 'verified' | 'unverified'; friendly_name: string; created_at: string; updated_at: string }[] = options.mfa === 'verify' || options.mfa === 'stale'
     ? [{ id: factorId, factor_type: 'totp', status: options.mfa === 'verify' ? 'verified' : 'unverified', friendly_name: 'Clock-in ECIC', created_at: '2026-09-01T00:00:00Z', updated_at: '2026-09-01T00:00:00Z' }] : []
@@ -79,8 +80,12 @@ export async function mockBackend(page: Page, options: { role?: AppContext['prof
       const report: Report = { as_of: serverTime, page: 0, page_size: 25, rows: request.p_search === 'Nadie' ? [] : [row], totals: { expected: request.p_search === 'Nadie' ? 0 : 1, on_time: 1, late: 0, entry_on_time: 1, entry_late: 0, exit_on_time: 0, exit_late: 0, missing_entry: 0, absent: 0, missing_exit: 1, completed: 0 } }
       return json(report)
     }
-    if (url.pathname.endsWith('/admin_notifications')) return json({ total: 1, rows: [{ teacher_id: profileId, full_name: 'Ana Torres', cedula: '0000000001', kind: 'exit', school_date: '2026-09-14', entry_at: '2026-09-14T11:30:00Z' }] })
-    if (url.pathname.endsWith('/admin_sidebar_counts')) return role === 'admin' ? json({ teachers: 29, justifications: 3, notifications: 1 }) : json({ message: 'ACCESS_DENIED', code: 'P0001', hint: null, details: null }, 400)
+    if (url.pathname.endsWith('/admin_notifications')) return json({ total: 1, unread: notificationReadAt ? 0 : 1, rows: [{ id: '40000000-0000-0000-0000-000000000001', teacher_id: profileId, full_name: 'Ana Torres', cedula: '0000000001', kind: 'exit', school_date: '2026-09-14', entry_at: '2026-09-14T11:30:00Z', entry_closes: '06:40:00', exit_closes: '13:30:00', read_at: notificationReadAt, expires_at: notificationReadAt ? '2026-09-29T19:00:00Z' : null }] })
+    if (url.pathname.endsWith('/admin_read_notification')) {
+      notificationReadAt ??= '2026-09-14T19:00:00Z'
+      return json({ id: route.request().postDataJSON().p_id, read_at: notificationReadAt })
+    }
+    if (url.pathname.endsWith('/admin_sidebar_counts')) return role === 'admin' ? json({ teachers: 29, justifications: 3, notifications: notificationReadAt ? 0 : 1 }) : json({ message: 'ACCESS_DENIED', code: 'P0001', hint: null, details: null }, 400)
     return json({ message: 'Unexpected test request' }, 500)
   })
   return { events, requests, protectedRequests, mfaRequests, setSchoolDate: (date: string) => { schoolDate = date }, disable: () => { inactive = true } }

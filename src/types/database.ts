@@ -248,6 +248,7 @@ export type Database = {
         Returns: undefined
       }
       admin_notifications: { Args: { p_page?: number }; Returns: Json }
+      admin_read_notification: { Args: { p_id: string }; Returns: Json }
       admin_sidebar_counts: { Args: never; Returns: Json }
       admin_teacher: { Args: { p_id: string }; Returns: Json }
       admin_teacher_report: {

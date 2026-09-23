@@ -43,8 +43,10 @@ Implementation interpretations recorded explicitly:
 - A missing-exit notification requires a recorded entry. A teacher with neither event is
   reported as “Sin entrada” after closing and produces a missed-entry notice, without a duplicate
   missed-exit notice. Late justifications retain the missed-entry notice because the window was missed.
-- Admin notifications are a persistent derived list and navigation badge, refreshed every
-  30 seconds while open and on returning to the tab. No email or push message is sent.
+- Admin notifications have table/gallery views and a detail modal, refreshed every 30 seconds
+  while open and on returning to the tab. Closing the modal marks the notice read for all admins;
+  the navigation badge counts unread notices. Read notices are deleted after 15 days by a scheduled
+  database job. Unread notices and attendance history remain. No email or push message is sent.
 
 ## Identity and recovery
 

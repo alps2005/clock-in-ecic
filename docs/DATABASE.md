@@ -122,11 +122,31 @@ new attendance. Export and a multi-request snapshot mechanism are outside this r
 
 ### `admin_notifications(p_page=0)` → JSON
 
-`{ total, rows }` with 25 notices per page, newest day then teacher UUID and `kind` (`entry`/`exit`).
-Rows include the teacher's name, C.I., school date and nullable entry timestamp. Derives missing/late
-entries after the entry cutoff and unmatched entries after the exit cutoff, even when nobody was
-online at closing. Late justifications retain their missed-entry notice.
-No cron task is needed. Notices remain available as part of attendance history; dismissal is not included.
+`{ total, unread, rows }` with 25 notices per page. Unread notices come first and read notices last,
+across all pages and both views. Each group is ordered by newest day, then teacher UUID and
+`kind` (`entry`/`exit`). Migration `202609230003_notification_unread_first.sql` applies this order
+before pagination; closing the modal refreshes the list so the newly read notice moves down.
+Rows include a persistent UUID, teacher/name/C.I., school date, nullable entry timestamp, actual
+policy entry/exit closing times, `read_at` and `expires_at`. Missing/late entries and unmatched
+exits are materialized into `private.admin_notifications`, including days nobody was online.
+Late justifications retain their missed-entry notice. `private.notification_scan` stores one
+watermark per teacher so physically deleted notices never regenerate from attendance history.
+The current day is rescanned for newly closed windows; new teachers receive a historical backfill.
+
+### `admin_read_notification(p_id)` → JSON
+
+Administrator-only, MFA-protected, shared inbox read acknowledgement. The modal calls this when
+closing by button, Escape or backdrop. The server sets `read_at` once; retries/reopening never
+extend retention. An expired/missing UUID returns `{ id, deleted: true }` for safe stale-tab closure.
+The navigation count uses unread notices. Unread notices do not expire. Read notices are physically
+deleted at `read_at + interval '15 days'`; attendance events are unaffected.
+
+Both inbox reads and the every-minute `ecic-notification-retention` pg_cron job invoke
+`private.sync_admin_notifications()`. The job ensures deletion without browser activity (within
+one minute after expiry); inbox reads also clean expired records immediately. Private tables and
+the maintenance helper are inaccessible to browser roles. Apply both `202609230001` and
+`202609230002` migrations before deploying the UI. Verify scheduling via `cron.job` and
+`cron.job_run_details`; embedded PGlite tests exercise the helper without the unavailable worker.
 
 ### `admin_teachers(p_page=0, p_search='')` → JSON
 

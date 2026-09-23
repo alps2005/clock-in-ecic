@@ -16,6 +16,9 @@ export async function database() {
     grant execute on function auth.uid() to authenticated;
   `)
   for (const name of (await readdir('supabase/migrations')).filter(x => x.endsWith('.sql')).sort()) {
+    // PGlite has no pg_cron worker. Test retention by invoking the same SQL helper;
+    // the scheduling-only migration is exercised on real Supabase/Postgres.
+    if (name === '202609230002_notification_cleanup_schedule.sql') continue
     await db.exec(await readFile(`supabase/migrations/${name}`, 'utf8'))
   }
   return db

@@ -39,7 +39,7 @@ export function Workspace({ userId }: { userId: string }) {
       <Route path="/admin/docentes" element={<TeachersPage schoolDate={data.school_date} />} />
       <Route path="/admin/docentes/:teacherId" element={<TeacherPage context={data} />} />
       <Route path="/admin/docentes/:teacherId/editar" element={<Navigate to=".." relative="path" replace />} />
-      <Route path="/admin/avisos" element={<NotificationsPage />} />
+      <Route path="/admin/avisos" element={<NotificationsPage onRead={sidebarCounts.refresh} />} />
     </> : <>
       <Route path="/jornada" element={<Attendance context={data} refresh={context.refresh} />} />
       <Route path="/historial" element={<History context={data} />} />

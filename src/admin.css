@@ -67,3 +67,41 @@
   .directory-card-heading p { font-size: 12px; }
   .admin-ui .directory-dates { margin: 12px 0; color: var(--muted-foreground); font-size: 13px; }
 }
+
+.notification-toolbar { display: flex; align-items: center; margin-bottom: 16px; }
+.notification-views { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid var(--border); border-radius: 10px; background: var(--background); }
+.notification-views button { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 7px 12px; border: 0; border-radius: 7px; background: transparent; color: var(--muted-foreground); font-size: 13px; cursor: pointer; }
+.notification-views button[aria-pressed=true] { background: var(--card); color: var(--foreground); box-shadow: 0 1px 3px rgb(0 0 0 / .1); }
+.notification-items { list-style: none; margin: 0; padding: 0; }
+.notification-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 14px; align-items: center; width: 100%; padding: 18px 10px; border: 0; border-top: 1px solid var(--border); background: transparent; color: var(--foreground); text-align: left; cursor: pointer; }
+.notification-item:hover { background: var(--neutral-bg); }
+.notification-item:focus-visible, .notification-views button:focus-visible { outline: 2px solid var(--accent-foreground); outline-offset: -2px; }
+.notification-summary { display: grid; gap: 5px; min-width: 0; overflow-wrap: anywhere; }
+.notification-summary strong { font-size: 14px; font-weight: 600; }
+.notification-summary > span, .notification-summary time { color: var(--muted-foreground); font-size: 12px; }
+.notification-read-state { display: flex; align-items: center; gap: 5px; color: var(--muted-foreground); font-size: 12px; white-space: nowrap; }
+.notification-unread-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-foreground); }
+.notification-chevron { color: var(--muted-foreground); }
+.admin-ui .notification-item.is-read .notification-icon { background: var(--neutral-bg); color: var(--muted-foreground); }
+.notification-item.is-read .notification-summary strong { font-weight: 400; }
+.notification-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 14px; margin-bottom: 16px; }
+.notification-gallery .notification-item { height: 100%; grid-template-columns: 1fr auto; padding: 18px; border: 1px solid var(--border); border-radius: 10px; align-content: start; }
+.notification-gallery .notification-summary { grid-column: 1 / -1; grid-row: 2; padding-block: 6px; }
+.notification-gallery .notification-read-state { grid-column: 2; grid-row: 1; }
+.notification-gallery .notification-chevron { display: none; }
+.notification-dialog .dialog-heading { align-items: flex-start; gap: 16px; }
+.notification-dialog h2 { margin: 0; font-size: 20px; }
+.notification-person { font-weight: 600; margin-top: 24px; overflow-wrap: anywhere; }
+.notification-details { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding-block: 18px; border-block: 1px solid var(--border); }
+.notification-details dt { font-size: 12px; color: var(--muted-foreground); margin-bottom: 4px; }
+.notification-details dd { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+.notification-dialog p { font-size: 14px; line-height: 1.6; }
+.notification-dialog .notification-retention { color: var(--muted-foreground); font-size: 12px; }
+.notification-dialog-actions { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin-top: 24px; }
+.notification-dialog-actions [role=status] { font-size: 12px; color: var(--muted-foreground); }
+@media (max-width: 600px) {
+  .notification-table .notification-item { grid-template-columns: auto minmax(0, 1fr); gap: 10px; }
+  .notification-table .notification-read-state { grid-column: 2; }
+  .notification-table .notification-chevron { display: none; }
+  .notification-details { gap: 14px; }
+}

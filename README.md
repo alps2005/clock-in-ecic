@@ -104,6 +104,17 @@ build afterwards. Full Supabase pgTAP tests require Docker (`npm run db:start`, 
 
 ## Setup and operations
 
+Admin notifications have table/gallery views and a detail modal. Closing a notice marks it read
+for the shared admin inbox; the navigation count shows unread notices. Read notices are physically
+deleted after 15 days, while attendance history and unread notices remain available.
+
+Apply `202609230001_notification_inbox.sql` and `202609230002_notification_cleanup_schedule.sql`
+before deploying this UI. The second migration enables pg_cron and installs the
+`ecic-notification-retention` job, which runs every minute even when nobody is signed in.
+Verify its active schedule in `cron.job` and successful runs in `cron.job_run_details`.
+The embedded PostgreSQL test harness skips only the scheduling migration because PGlite has no
+pg_cron worker; retention, permissions, idempotent reads and non-regeneration are tested directly.
+
 - [Confirmed product rules](docs/PRODUCT_BRIEF.md)
 - [Database, permissions and RPC contract](docs/DATABASE.md)
 - [Supabase, accounts, QR and Vercel setup](docs/SETUP.md)

@@ -3,6 +3,9 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
 select no_plan();
+select is((select count(*)::integer from cron.job where jobname='ecic-notification-retention'
+  and active and schedule='* * * * *' and command='select private.sync_admin_notifications()'),1,
+  'notification retention runs every minute without an open browser');
 \ir fixtures.inc
 select set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',true);
 select set_config('request.jwt.claims','{"sub":"10000000-0000-0000-0000-000000000001","app_metadata":{"ecic_session_version":1}}',true);

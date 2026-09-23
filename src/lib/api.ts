@@ -14,6 +14,7 @@ export const getContext = () => rpc<'app_context', AppContext>('app_context')
 export const getReport = (from: string, to: string, page: number, search: string) =>
   rpc<'attendance_report', Report>('attendance_report', { p_from: from, p_to: to, p_page: page, p_search: search })
 export const getNotifications = (page: number) => rpc<'admin_notifications', Notifications>('admin_notifications', { p_page: page })
+export const readNotification = (id: string) => rpc<'admin_read_notification', { id: string; read_at?: string; deleted?: boolean }>('admin_read_notification', { p_id: id })
 export const getTeachers = (page: number, search: string) => rpc<'admin_teachers', TeacherDirectory>('admin_teachers', { p_page: page, p_search: search })
 export const getAdminSidebarCounts = () => rpc<'admin_sidebar_counts', AdminSidebarCounts>('admin_sidebar_counts')
 export const getTeacher = (id: string) => rpc<'admin_teacher', TeacherAccount>('admin_teacher', { p_id: id })

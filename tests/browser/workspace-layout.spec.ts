@@ -67,7 +67,7 @@ test('admin screens fit desktop and mobile in both themes', async ({ page }, inf
       for (const route of ['/admin', '/admin/docentes', '/admin/avisos']) {
         await page.goto(route)
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-        await expect(page.getByRole('link', { name: /Ana Torres|Historial de Ana Torres/ }).or(page.getByRole('heading', { name: 'Ana Torres' })).filter({ visible: true }).first()).toBeVisible()
+        await expect(page.getByRole('link', { name: /Ana Torres|Historial de Ana Torres/ }).or(page.getByRole('button', { name: /Ana Torres/ })).filter({ visible: true }).first()).toBeVisible()
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
         expect(await page.locator('.teacher-content').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true)
         if (width > 900) {
