@@ -176,3 +176,26 @@ test('an initial panel request failure reveals retry instead of leaving progress
   await page.getByRole('button', { name: 'Volver a intentar' }).click()
   await expect(page.getByRole('button', { name: 'Ver justificación', exact: true })).toBeVisible()
 })
+
+test('workspace recovery reloads the client and preserves the admin notification route and session', async ({ page }) => {
+  await mockBackend(page, { role: 'admin' })
+  let documents = 0
+  let passwordLogins = 0
+  page.on('request', request => {
+    if (request.isNavigationRequest() && request.frame() === page.mainFrame()) documents++
+    if (request.url().includes('/auth/v1/token?grant_type=password')) passwordLogins++
+  })
+  await page.route('**/rest/v1/rpc/app_context', route => documents === 1
+    ? route.fulfill({ status: 503, json: { message: 'OFFLINE' } })
+    : route.fallback())
+  await page.goto('/admin/avisos')
+  await enterCredentials(page)
+  await expect(page.getByRole('heading', { name: 'No pudimos cargar tu espacio' })).toBeVisible()
+  await page.getByRole('button', { name: 'Volver a intentar' }).click()
+  await expect(page.getByRole('heading', { name: 'Notificaciones', exact: true })).toBeVisible()
+  await expect(page.locator('.notification-item')).toBeVisible()
+  await expect(page).toHaveURL(/\/admin\/avisos$/)
+  expect(documents).toBe(2)
+  expect(passwordLogins).toBe(1)
+  await expect(page.getByRole('heading', { name: 'No pudimos cargar tu espacio' })).toHaveCount(0)
+})

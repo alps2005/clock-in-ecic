@@ -257,3 +257,17 @@ modal closure. Each group retains descending school dates and stable teacher/kin
 All 9 notification/administration database tests pass, including read notices moving behind unread
 notices across page boundaries and stable ordering after refresh. Verification did not change
 hosted notification read states.
+
+## Workspace recovery during development — 2026-09-23
+
+The user reported that the account-loading failure screen appears while testing code changes,
+that Cmd+R recovers, and that the existing retry button does not. The original failing response
+was not captured, so its precise network/runtime cause is unconfirmed. The retry button previously
+only refreshed `app_context` in the existing client. It now reloads the current document to restart
+the session/client bootstrap, preserving the URL and persisted sign-in. It shows `Recargando…`
+and disables duplicate recovery/logout actions while navigation starts. Panel-specific retries
+and the MFA flow continue to use their existing request-level recovery.
+
+Public Supabase Auth connectivity passed. Build/lint passed, as did 15 focused Chromium desktop,
+Chromium mobile and WebKit tests covering account failure/retry/logout, full-document recovery
+at `/admin/avisos` without a second password login, panel retry and MFA deep-link recovery.

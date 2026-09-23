@@ -1,6 +1,6 @@
 import { errorMessage } from '../lib/attendance'
 import { AlertCircle, LogOut, RefreshCw } from 'lucide-react'
-import { useEffect, useSyncExternalStore } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { PublicLayout } from './PublicLayout'
 
 const LOADING_CEILING = 94
@@ -113,14 +113,21 @@ export function Loading({ fullPage = false, complete = false, description = 'Est
   return <LoadingContent percent={0} fullPage={false} description={description} />
 }
 
-export function AccessFailure({ error, retry, logout, loggingOut, logoutError }: { error: unknown; retry: () => void; logout: () => void; loggingOut: boolean; logoutError: string }) {
+export function AccessFailure({ error, logout, loggingOut, logoutError }: { error: unknown; logout: () => void; loggingOut: boolean; logoutError: string }) {
+  const [reloading, setReloading] = useState(false)
+  function retry() {
+    setReloading(true)
+    // Restart the account/session bootstrap as Cmd+R does, keeping the route and
+    // persisted session. Repeating an RPC cannot recover a stuck client runtime.
+    window.location.reload()
+  }
   return <PublicLayout><section className="ui-card access-card" aria-labelledby="access-title">
     <span className="auth-symbol access-symbol" aria-hidden="true"><AlertCircle size={24} /></span>
     <h1 id="access-title">No pudimos cargar tu espacio</h1>
     <p className="access-message" role="alert">{errorMessage(error)}</p>
     <div className="access-actions">
-      <button className="button primary" onClick={retry}><RefreshCw size={16} aria-hidden="true" />Volver a intentar</button>
-      <button className="button secondary" onClick={logout} disabled={loggingOut}><LogOut size={16} aria-hidden="true" />{loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}</button>
+      <button className="button primary" onClick={retry} disabled={reloading || loggingOut} aria-busy={reloading}><RefreshCw size={16} aria-hidden="true" />{reloading ? 'Recargando…' : 'Volver a intentar'}</button>
+      <button className="button secondary" onClick={logout} disabled={loggingOut || reloading}><LogOut size={16} aria-hidden="true" />{loggingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}</button>
     </div>
     {logoutError && <p className="feedback error" role="alert">{logoutError}</p>}
   </section></PublicLayout>

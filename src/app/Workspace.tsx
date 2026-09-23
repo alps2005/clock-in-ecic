@@ -30,7 +30,7 @@ export function Workspace({ userId }: { userId: string }) {
   }
   if (context.loading) return <Loading fullPage description="Cargando tu cuenta." />
   if (context.error instanceof Error && context.error.message === 'MFA_REQUIRED') return <AdminMfa onVerified={context.refresh} logout={() => void logout()} loggingOut={loggingOut} logoutError={logoutError} />
-  if (context.error || !context.data || context.data.profile.auth_user_id !== userId) return <AccessFailure error={context.error ?? new Error('ACCESS_DENIED')} retry={context.refresh} logout={() => void logout()} loggingOut={loggingOut} logoutError={logoutError} />
+  if (context.error || !context.data || context.data.profile.auth_user_id !== userId) return <AccessFailure error={context.error ?? new Error('ACCESS_DENIED')} logout={() => void logout()} loggingOut={loggingOut} logoutError={logoutError} />
   const data = context.data
   const admin = data.profile.role === 'admin'
   return <PanelLoadingBoundary><WorkspaceShell context={data} counts={sidebarCounts.data} logout={() => void logout()} loggingOut={loggingOut} logoutError={logoutError}>
